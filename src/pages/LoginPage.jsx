@@ -51,7 +51,7 @@ export default function LoginPage() {
                 {/* Title */}
                 <div className="text-center space-y-2">
                     <h2 className="text-2xl font-black text-brand-400">
-                        Welcome to Process Agentifier
+                        Welcome to AgentforceX
                     </h2>
                     <p className="text-gray-500 text-sm">
                         Enter you details to continue.

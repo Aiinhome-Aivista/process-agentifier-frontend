@@ -18,7 +18,7 @@ export default function Navbar() {
           <span className="w-8 h-8 bg-brand-400 rounded-lg flex items-center justify-center">
             <Zap size={16} className="text-white" fill="white" />
           </span>
-          Process Agentifier
+          AgentforceX
         </Link>
         <div className="flex items-center gap-1">
           <NavLink href="#" icon={<BookOpen size={14} />}>Documentation</NavLink>
