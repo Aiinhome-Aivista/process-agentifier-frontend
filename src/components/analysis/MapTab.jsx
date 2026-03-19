@@ -21,21 +21,38 @@ export default function MapTab({ steps }) {
           <h3 className="pdf-atomic text-lg font-bold text-gray-900 mb-6 border-b pb-2">Process Step Breakdown</h3>
           <div className="space-y-4">
             {steps?.map((step, i) => (
-              <div key={i} className="pdf-atomic flex gap-6 pb-4 border-b border-gray-100 last:border-0 mb-2">
-                <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center font-black text-gray-300 text-base shrink-0">
-                  {i + 1}
+              <div key={i} className="pdf-atomic flex gap-6 relative">
+                {/* Connector Line and Dot */}
+                <div className="flex flex-col items-center shrink-0">
+                  <div className="w-2 h-2 rounded-full bg-gray-400 mt-3 z-10" />
+                  {i < steps.length - 1 && (
+                    <div className="w-px bg-gray-200 flex-1 my-1" />
+                  )}
                 </div>
-                <div className="flex-1">
-                  <div className="flex justify-between items-start mb-1">
-                    <h4 className="text-base font-bold text-gray-900">{step.title}</h4>
-                    <span className="text-[10px] font-black uppercase text-brand-600">
-                      {step.automation_potential}% Potential
-                    </span>
-                  </div>
-                  <div className="flex gap-4 text-[10px] uppercase font-bold text-gray-400">
-                    <span>{step.type}</span>
-                    <span>•</span>
-                    <span>{step.actor}</span>
+
+                {/* Card Content */}
+                <div className="flex-1 pb-6 pt-0">
+                  <div className="bg-gray-100 border border-gray-200 rounded-2xl p-5 shadow-sm">
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="text-xl font-black text-gray-900 leading-tight">{step.title}</h4>
+                      <span className="text-[10px] font-black uppercase text-white bg-brand-600 px-3 py-1 rounded-full">
+                        {step.automation_potential}% POTENTIAL
+                      </span>
+                    </div>
+                    
+                    <div className="flex gap-4 text-[10px] uppercase font-black text-gray-500 mb-3 tracking-widest">
+                       <span className="text-brand-700">{step.actor}</span>
+                       {step.step_type && (
+                         <>
+                           <span className="opacity-30">•</span>
+                           <span>{step.step_type}</span>
+                         </>
+                       )}
+                    </div>
+
+                    <p className="text-sm text-gray-800 leading-relaxed font-medium">
+                      {step.description}
+                    </p>
                   </div>
                 </div>
               </div>
