@@ -42,7 +42,7 @@ function Layout() {
   const hideNavbar = location.pathname === '/'
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       {!hideNavbar && <Navbar />}
 
       <main>
@@ -54,7 +54,7 @@ function Layout() {
           <Route
             path="/connect-erp"
             element={
-              <div className="max-w-xl mx-auto px-6 py-20 text-center text-gray-400">
+              <div className="max-w-xl mx-auto px-6 py-20 text-center text-white/40">
                 ERP connection coming soon.
               </div>
             }

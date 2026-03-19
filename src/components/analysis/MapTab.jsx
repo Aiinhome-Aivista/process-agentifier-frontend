@@ -2,51 +2,99 @@ import { useRef } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import StepCard from './StepCard'
 import AutomationChart from '../charts/AutomationChart'
+import { usePDF } from '../../context/PdfContext'
+import clsx from 'clsx'
+
 
 export default function MapTab({ steps }) {
   const scrollRef = useRef()
+  const isPDF = usePDF()
 
   const scroll = (dir) => {
     scrollRef.current?.scrollBy({ left: dir * 300, behavior: 'smooth' })
+  }
+
+  if (isPDF) {
+    return (
+      <div className="space-y-12">
+        <div>
+          <h3 className="text-lg font-bold text-gray-900 mb-6 border-b pb-2">Process Step Breakdown</h3>
+          <div className="space-y-6">
+            {steps?.map((step, i) => (
+              <div key={i} className="flex gap-6 pb-6 border-b border-gray-100 last:border-0">
+                <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center font-black text-gray-300 text-lg shrink-0">
+                  {i + 1}
+                </div>
+                <div className="flex-1">
+                  <div className="flex justify-between items-start mb-1">
+                    <h4 className="text-base font-bold text-gray-900">{step.title}</h4>
+                    <span className="text-[10px] font-black uppercase text-brand-600">
+                      {step.automation_potential}% Potential
+                    </span>
+                  </div>
+                  <div className="flex gap-4 text-[10px] uppercase font-bold text-gray-400 mb-2">
+                    <span>{step.type}</span>
+                    <span>•</span>
+                    <span>{step.actor}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="pt-8">
+          <h3 className="text-lg font-bold text-gray-900 mb-6 border-b pb-2">Automation Potential Variance</h3>
+          <AutomationChart steps={steps} />
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="animate-fade-in space-y-6">
       {/* Step cards with nav arrows */}
       <div className="relative">
-        <button
-          onClick={() => scroll(-1)}
-          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10
-              w-8 h-8 rounded-full bg-white shadow-md border border-gray-100
-              flex items-center justify-center hover:bg-gray-50 transition-colors"
-        >
-          <ChevronLeft size={16} className="text-gray-500" />
-        </button>
+        {!isPDF && (
+          <button
+            onClick={() => scroll(-1)}
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10
+                w-8 h-8 rounded-full bg-white/5 backdrop-blur-md border border-white/10
+                flex items-center justify-center hover:bg-white/10 transition-colors"
+          >
+            <ChevronLeft size={16} className="text-white/60" />
+          </button>
+        )}
 
         <div
           ref={scrollRef}
-          className="flex items-start gap-0 overflow-x-auto pb-4 scroll-smooth
-              scrollbar-thin px-2"
+          className={clsx(
+            "flex items-start gap-4 pb-4 scroll-smooth scrollbar-thin px-2",
+            isPDF ? "flex-wrap overflow-visible" : "overflow-x-auto"
+          )}
           style={{ scrollbarWidth: 'thin' }}
         >
           {steps?.map((step, i) => (
-            <StepCard
-              key={step.id || i}
-              step={step}
-              index={i}
-              isLast={i === steps.length - 1}
-            />
+            <div key={step.id || i} className={isPDF ? "w-[calc(50%-16px)]" : ""}>
+              <StepCard
+                step={step}
+                index={i}
+                isLast={i === steps.length - 1}
+              />
+            </div>
           ))}
         </div>
 
-        <button
-          onClick={() => scroll(1)}
-          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10
-              w-8 h-8 rounded-full bg-white shadow-md border border-gray-100
-              flex items-center justify-center hover:bg-gray-50 transition-colors"
-        >
-          <ChevronRight size={16} className="text-gray-500" />
-        </button>
+        {!isPDF && (
+          <button
+            onClick={() => scroll(1)}
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10
+                w-8 h-8 rounded-full bg-white/5 backdrop-blur-md border border-white/10
+                flex items-center justify-center hover:bg-white/10 transition-colors"
+          >
+            <ChevronRight size={16} className="text-white/60" />
+          </button>
+        )}
       </div>
 
       {/* Bar chart */}

@@ -43,18 +43,18 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 ">
+        <div className="min-h-screen flex items-center justify-center bg-brand-dark px-4 ">
             <div className="w-full max-w-md card p-8 space-y-7">
-                <span className="w-8 h-8 bg-brand-400 rounded-lg flex items-center justify-center mx-auto">
-                    <Zap size={16} className="text-white" fill="white" />
+                <span className="w-12 h-12 bg-brand-500 rounded-xl flex items-center justify-center mx-auto shadow-lg shadow-brand-500/20">
+                    <Zap size={24} className="text-black" fill="black" />
                 </span>
                 {/* Title */}
                 <div className="text-center space-y-2">
-                    <h2 className="text-2xl font-black text-brand-400">
-                        Welcome to AgentforceX
+                    <h2 className="text-3xl font-black text-white">
+                        Welcome to <span className="gradient-text">AgentforceX</span>
                     </h2>
-                    <p className="text-gray-500 text-sm">
-                        Enter you details to continue.
+                    <p className="text-white/40 text-sm">
+                        Enter your details to continue.
                     </p>
                 </div>
 
@@ -62,14 +62,14 @@ export default function LoginPage() {
                 <form onSubmit={handleLogin} className="space-y-4">
 
                     {/* Email */}
-                    <div className="space-y-1">
-                        <label className="text-sm text-gray-600">Email</label>
-                        <div className="flex items-center border rounded-xl px-3 py-2 bg-white focus-within:ring-2 focus-within:ring-brand-300">
-                            <Mail size={16} className="text-gray-400 mr-2" />
+                    <div className="space-y-1.5">
+                        <label className="text-sm text-white/60 ml-1">Email</label>
+                        <div className="flex items-center border border-white/10 rounded-xl px-4 py-2.5 bg-white/5 focus-within:ring-2 focus-within:ring-brand-500/30 transition-all">
+                            <Mail size={16} className="text-white/20 mr-2" />
                             <input
                                 type="email"
-                                className="w-full outline-none text-sm"
-                                placeholder="Enter your email"
+                                className="w-full bg-transparent outline-none text-sm text-white placeholder:text-white/20"
+                                placeholder="name@company.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                             />
@@ -77,24 +77,24 @@ export default function LoginPage() {
                     </div>
 
                     {/* Password */}
-                    <div className="space-y-1">
-                        <label className="text-sm text-gray-600">Password</label>
+                    <div className="space-y-1.5">
+                        <label className="text-sm text-white/60 ml-1">Password</label>
 
-                        <div className="flex items-center border rounded-xl px-3 py-2 bg-white focus-within:ring-2 focus-within:ring-brand-300">
+                        <div className="flex items-center border border-white/10 rounded-xl px-4 py-2.5 bg-white/5 focus-within:ring-2 focus-within:ring-brand-500/30 transition-all">
 
-                            <Lock size={16} className="text-gray-400 mr-2" />
+                            <Lock size={16} className="text-white/20 mr-2" />
 
                             <input
                                 type={showPassword ? 'text' : 'password'}
-                                className="w-full outline-none text-sm"
-                                placeholder="Enter your password"
+                                className="w-full bg-transparent outline-none text-sm text-white placeholder:text-white/20"
+                                placeholder="••••••••"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                             />
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="ml-2 text-gray-400 hover:text-gray-600"
+                                className="ml-2 text-white/20 hover:text-white/50 transition-colors"
                             >
                                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                             </button>
@@ -104,7 +104,7 @@ export default function LoginPage() {
 
                     {/* Error */}
                     {error && (
-                        <div className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">
+                        <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 px-3 py-2.5 rounded-xl">
                             {error}
                         </div>
                     )}
@@ -113,32 +113,32 @@ export default function LoginPage() {
                     <button
                         type="submit"
                         disabled={!isFilled || loading}
-                        className={`w-full py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition
+                        className={`w-full py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.98]
                            ${!isFilled || loading
-                                ? 'btn-primary text-white opacity-60 cursor-not-allowed'
-                                : 'btn-primary text-white hover:bg-brand-600'
+                                ? 'bg-white/5 text-white/20 cursor-not-allowed border border-white/5'
+                                : 'bg-brand-500 text-black hover:bg-brand-400 shadow-lg shadow-brand-500/20'
                             }
   `}
                     >
                         {loading ? (
                             <>
                                 <Loader2 size={18} className="animate-spin" />
-                                Logging in...
+                                Please wait...
                             </>
                         ) : (
-                            'Login'
+                            'Sign In'
                         )}
                     </button>
                 </form>
 
                 {/* Footer */}
-                <p className="text-center text-sm text-gray-500">
+                <p className="text-center text-sm text-white/40">
                     Don’t have an account?{' '}
                     <span
-                        className="text-brand-400 font-medium cursor-pointer hover:underline font-bold"
+                        className="text-brand-500 font-bold cursor-pointer hover:text-brand-400 transition-colors"
                         onClick={() => navigate('/')}
                     >
-                        Sign up
+                        Create account
                     </span>
                 </p>
             </div>

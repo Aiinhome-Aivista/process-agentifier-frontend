@@ -6,6 +6,7 @@ import OverviewTab from '../components/analysis/OverviewTab'
 import MapTab from '../components/analysis/MapTab'
 import ERPContextTab from '../components/analysis/ERPContextTab'
 import AutomationTab from '../components/analysis/AutomationTab'
+import ExportPDF from '../components/pdf/ExportPdf'
 import { getProcess } from '../services/api'
 
 export default function AnalysisPage() {
@@ -30,8 +31,8 @@ export default function AnalysisPage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-        <Loader2 size={32} className="animate-spin text-brand-400" />
-        <p className="text-gray-500 text-sm">Loading analysis...</p>
+        <Loader2 size={32} className="animate-spin text-brand-500" />
+        <p className="text-white/40 text-sm">Loading analysis...</p>
       </div>
     )
   }
@@ -39,7 +40,7 @@ export default function AnalysisPage() {
   if (error || !result) {
     return (
       <div className="max-w-xl mx-auto px-6 py-20 text-center">
-        <p className="text-red-500 mb-4">{error || 'Process not found.'}</p>
+        <p className="text-red-400 mb-4">{error || 'Process not found.'}</p>
         <button onClick={() => navigate('/')} className="btn-secondary">
           <ArrowLeft size={14} /> Back to Home
         </button>
@@ -54,10 +55,10 @@ export default function AnalysisPage() {
       {/* Back button */}
       <button
         onClick={() => navigate('/home')}
-        className="flex items-center gap-1.5 text-sm text-gray-400 font-bold
-            hover:text-gray-700 transition-colors"
+        className="flex items-center gap-1.5 text-sm text-white/40 font-bold
+            hover:text-white transition-colors group"
       >
-        <ArrowLeft size={14} /> New Analysis
+        <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" /> New Analysis
       </button>
 
       {/* Process header + tab switcher */}
@@ -65,6 +66,7 @@ export default function AnalysisPage() {
         process={process}
         activeTab={activeTab}
         onTabChange={setActiveTab}
+        actions={<ExportPDF data={result} />}
       />
 
       {/* Tab content */}

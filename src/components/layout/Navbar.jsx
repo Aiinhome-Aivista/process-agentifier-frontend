@@ -12,11 +12,11 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur border-b border-gray-100">
+    <nav className="sticky top-0 z-50 glass border-b border-white/5 shadow-2xl">
       <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
-        <Link to="/home" className="flex items-center gap-2.5 font-semibold text-gray-900">
-          <span className="w-8 h-8 bg-brand-400 rounded-lg flex items-center justify-center">
-            <Zap size={16} className="text-white" fill="white" />
+        <Link to="/home" className="flex items-center gap-2.5 font-bold tracking-tight text-white group">
+          <span className="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center group-hover:bg-brand-400 transition-colors">
+            <Zap size={16} className="text-black" fill="black" />
           </span>
           AgentforceX
         </Link>
@@ -26,16 +26,16 @@ export default function Navbar() {
           <NavLink href="#" icon={<ShoppingBag size={14} />}>Marketplace</NavLink>
         </div>
         
-        <div className="flex items-center gap-4">
-          <h1 className='font-medium text-brand-400 text-base'>
-            Welcome aiinhome
+        <div className="flex items-center gap-6">
+          <h1 className='font-semibold text-brand-500 text-sm'>
+            Welcome, aiinhome
           </h1>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-brand-400 hover:bg-red-50 rounded-lg transition-colors"
+            className="flex items-center gap-2 p-2 text-white/50 hover:text-red-400 hover:bg-white/5 rounded-lg transition-all"
+            title="Logout"
           >
-            <LogOut size={16} />
-            
+            <LogOut size={18} />
           </button>
         </div>
       </div>
@@ -45,8 +45,8 @@ export default function Navbar() {
 
 function NavLink({ href, icon, children }) {
   return (
-    <a href={href} className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600
-       hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors">
+    <a href={href} className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-white/50
+       hover:text-white hover:bg-white/5 rounded-lg transition-all">
       {icon}{children}
     </a>
   )

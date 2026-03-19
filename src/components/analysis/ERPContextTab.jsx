@@ -1,4 +1,5 @@
 import { Database, GitFork } from 'lucide-react'
+import { usePDF } from '../../context/PdfContext'
 
 function ModuleCard({ mod }) {
   return (
@@ -7,19 +8,19 @@ function ModuleCard({ mod }) {
         <span className="text-xs font-bold text-brand-500 uppercase tracking-widest">
           {mod.module_name}
         </span>
-        <span className="text-xs text-gray-400 font-mono shrink-0">
+        <span className="text-xs text-white/40 font-mono shrink-0">
           {mod.source_file}
         </span>
       </div>
-      <p className="text-sm text-gray-600 mb-3">{mod.description}</p>
+      <p className="text-sm text-white/60 mb-3">{mod.description}</p>
 
       {mod.tables_identified?.length > 0 && (
         <div className="mb-2">
-          <p className="text-xs font-medium text-gray-400 mb-1.5">Tables / Entities</p>
+          <p className="text-xs font-medium text-white/40 mb-1.5">Tables / Entities</p>
           <div className="flex flex-wrap gap-1.5">
             {mod.tables_identified.map(t => (
-              <span key={t} className="text-xs px-2 py-0.5 bg-blue-50 text-blue-700
-                  rounded-md font-mono border border-blue-100">{t}</span>
+              <span key={t} className="text-xs px-2 py-0.5 bg-blue-500/10 text-blue-400
+                  rounded-md font-mono border border-blue-500/20">{t}</span>
             ))}
           </div>
         </div>
@@ -27,14 +28,14 @@ function ModuleCard({ mod }) {
 
       {mod.fields_identified?.length > 0 && (
         <div>
-          <p className="text-xs font-medium text-gray-400 mb-1.5">Fields Identified</p>
+          <p className="text-xs font-medium text-white/40 mb-1.5">Fields Identified</p>
           <div className="flex flex-wrap gap-1.5">
             {mod.fields_identified.slice(0, 12).map(f => (
-              <span key={f} className="text-xs px-2 py-0.5 bg-gray-100 text-gray-500
-                  rounded-md font-mono">{f}</span>
+              <span key={f} className="text-xs px-2 py-0.5 bg-white/5 text-white/50
+                  rounded-md font-mono border border-white/5">{f}</span>
             ))}
             {mod.fields_identified.length > 12 && (
-              <span className="text-xs text-gray-400">
+              <span className="text-xs text-white/30">
                 +{mod.fields_identified.length - 12} more
               </span>
             )}
@@ -46,15 +47,52 @@ function ModuleCard({ mod }) {
 }
 
 export default function ERPContextTab({ erpModules, process }) {
+  const isPdf = usePDF()
   const hasModules = erpModules?.length > 0
+
+  if (isPdf) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">System & Module Inventory</h3>
+          {hasModules ? (
+            <div className="space-y-6">
+              {erpModules.map((mod, i) => (
+                <div key={i} className="border-l-4 border-brand-500 pl-4 py-1">
+                  <div className="flex justify-between items-baseline mb-2">
+                    <h4 className="text-base font-black text-gray-900 uppercase">{mod.module_name}</h4>
+                    <span className="text-xs font-mono text-gray-400">{mod.source_file}</span>
+                  </div>
+                  <p className="text-sm text-gray-700 leading-relaxed mb-3">{mod.description}</p>
+
+                  <div className="grid grid-cols-2 gap-4 mt-2">
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Entities</p>
+                      <p className="text-sm text-gray-600">{mod.tables_identified?.join(', ') || 'None'}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Key Fields</p>
+                      <p className="text-sm text-gray-600 line-clamp-2">{mod.fields_identified?.slice(0, 15).join(', ') || 'None'}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400 italic">No ERP modules were identified during analysis.</p>
+          )}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="animate-fade-in grid grid-cols-1 lg:grid-cols-2 gap-8">
       {/* Module Identification */}
       <div>
         <div className="flex items-center gap-2 mb-4">
-          <Database size={16} className="text-brand-400" />
-          <h2 className="text-base font-semibold text-gray-800">Module Identification</h2>
+          <Database size={16} className="text-brand-500" />
+          <h2 className="text-base font-semibold text-white/90">Module Identification</h2>
         </div>
         {hasModules ? (
           <div className="space-y-3">
@@ -62,11 +100,11 @@ export default function ERPContextTab({ erpModules, process }) {
           </div>
         ) : (
           <div className="card p-6 text-center">
-            <Database size={24} className="text-gray-200 mx-auto mb-2" />
-            <p className="text-sm text-gray-400">
+            <Database size={24} className="text-white/10 mx-auto mb-2" />
+            <p className="text-sm text-white/40">
               No ERP modules identified in the uploaded files.
             </p>
-            <p className="text-xs text-gray-300 mt-1">
+            <p className="text-xs text-white/20 mt-1">
               Upload ERP data dumps for module-level analysis.
             </p>
           </div>
@@ -76,25 +114,25 @@ export default function ERPContextTab({ erpModules, process }) {
       {/* Logical Relationships */}
       <div>
         <div className="flex items-center gap-2 mb-4">
-          <GitFork size={16} className="text-brand-400" />
-          <h2 className="text-base font-semibold text-gray-800">Logical Relationships</h2>
+          <GitFork size={16} className="text-brand-500" />
+          <h2 className="text-base font-semibold text-white/90">Logical Relationships</h2>
         </div>
         {hasModules ? (
           <div className="card p-5 space-y-3">
             {erpModules.map((mod, i) => (
-              <div key={i} className="flex items-start gap-3 py-2 border-b border-gray-50 last:border-0">
-                <div className="w-2 h-2 rounded-full bg-brand-300 mt-1.5 shrink-0" />
+              <div key={i} className="flex items-start gap-3 py-2 border-b border-white/5 last:border-0">
+                <div className="w-2 h-2 rounded-full bg-brand-500/40 mt-1.5 shrink-0" />
                 <div>
-                  <p className="text-sm font-medium text-gray-700">{mod.module_name}</p>
-                  <p className="text-xs text-gray-400">{mod.erp_system} · {mod.description?.slice(0, 80)}...</p>
+                  <p className="text-sm font-medium text-white/80">{mod.module_name}</p>
+                  <p className="text-xs text-white/30">{mod.erp_system} · {mod.description?.slice(0, 80)}...</p>
                 </div>
               </div>
             ))}
           </div>
         ) : (
           <div className="card p-6 text-center">
-            <GitFork size={24} className="text-gray-200 mx-auto mb-2" />
-            <p className="text-sm text-gray-400">
+            <GitFork size={24} className="text-white/10 mx-auto mb-2" />
+            <p className="text-sm text-white/40">
               Logical relationships will appear here once ERP modules are identified.
             </p>
           </div>

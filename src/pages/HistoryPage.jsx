@@ -17,42 +17,42 @@ export default function HistoryPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-10">
-      <div className="flex items-center gap-2 mb-6">
-        <Clock size={18} className="text-brand-400" />
-        <h1 className="text-xl font-bold text-gray-900">Previous Analyses</h1>
+      <div className="flex items-center gap-2 mb-6 ml-1">
+        <Clock size={18} className="text-brand-500" />
+        <h1 className="text-xl font-bold text-white tracking-tight">Previous Analyses</h1>
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 size={24} className="animate-spin text-brand-400" />
+        <div className="flex justify-center py-20">
+          <Loader2 size={24} className="animate-spin text-brand-500" />
         </div>
       ) : processes.length === 0 ? (
-        <div className="text-center py-16 text-gray-400">
-          <FileText size={32} className="mx-auto mb-3 text-gray-200" />
-          <p>No analyses yet. Upload a file to get started.</p>
+        <div className="text-center py-24 text-white/20">
+          <FileText size={48} className="mx-auto mb-4 opacity-10" />
+          <p className="text-sm">No analyses yet. Upload a file to get started.</p>
         </div>
       ) : (
         <div className="space-y-3">
           {processes.map(p => (
-            <div
-              key={p.id}
-              onClick={() => navigate(`/analysis/${p.id}`)}
-              className="card p-4 flex items-center justify-between cursor-pointer
-                  hover:shadow-md transition-all duration-150"
-            >
-              <div>
-                <p className="font-semibold text-gray-900">{p.title}</p>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  {p.source_type?.toUpperCase()} · {new Date(p.created_at).toLocaleDateString()}
-                  {p.erp_system && ` · ${p.erp_system}`}
-                </p>
-              </div>
-              <div className="flex items-center gap-4">
-                <span className="text-2xl font-black text-brand-400 tabular-nums">
-                  {p.automation_score}%
-                </span>
-                <ChevronRight size={16} className="text-gray-300" />
-              </div>
+              <div
+                key={p.id}
+                onClick={() => navigate(`/analysis/${p.id}`)}
+                className="card p-5 flex items-center justify-between cursor-pointer
+                    hover:bg-white/[0.08] hover:scale-[1.01] transition-all duration-200"
+              >
+                <div>
+                  <p className="font-bold text-white/90 group-hover:text-brand-400 transition-colors uppercase tracking-tight">{p.title}</p>
+                  <p className="text-[10px] uppercase font-black tracking-widest text-white/30 mt-1">
+                    {p.source_type} · {new Date(p.created_at).toLocaleDateString()}
+                    {p.erp_system && ` · ${p.erp_system}`}
+                  </p>
+                </div>
+                <div className="flex items-center gap-6">
+                  <span className="text-3xl font-black text-brand-500 tabular-nums shadow-brand-500/20 drop-shadow-sm">
+                    {p.automation_score}%
+                  </span>
+                  <ChevronRight size={18} className="text-white/10" />
+                </div>
             </div>
           ))}
         </div>

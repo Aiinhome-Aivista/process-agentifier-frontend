@@ -2,23 +2,23 @@ import clsx from 'clsx'
 import { Cpu, Shield, Zap, ArrowRight } from 'lucide-react'
 
 const AGENT_TYPE_META = {
-  system_integration:   { label: 'System Integration', color: 'bg-blue-50 text-blue-700 border-blue-200' },
-  rpa:                  { label: 'RPA',                 color: 'bg-purple-50 text-purple-700 border-purple-200' },
-  ai_agent:             { label: 'AI Agent',            color: 'bg-brand-50 text-brand-600 border-brand-200' },
-  workflow_automation:  { label: 'Workflow',            color: 'bg-amber-50 text-amber-700 border-amber-200' },
-  communication_agent:  { label: 'Comm Agent',         color: 'bg-teal-50 text-teal-700 border-teal-200' },
+  system_integration:   { label: 'System Integration', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
+  rpa:                  { label: 'RPA',                 color: 'bg-purple-500/10 text-purple-400 border-purple-500/20' },
+  ai_agent:             { label: 'AI Agent',            color: 'bg-brand-500/10 text-brand-400 border-brand-500/20' },
+  workflow_automation:  { label: 'Workflow',            color: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
+  communication_agent:  { label: 'Comm Agent',         color: 'bg-teal-500/10 text-teal-400 border-teal-500/20' },
 }
 
 const ROI_COLORS = {
   high:   'text-brand-500',
   medium: 'text-amber-500',
-  low:    'text-gray-400',
+  low:    'text-white/40',
 }
 
 const EFFORT_COLORS = {
-  low:    'bg-brand-50 text-brand-600',
-  medium: 'bg-amber-50 text-amber-700',
-  high:   'bg-red-50 text-red-600',
+  low:    'bg-brand-500/10 text-brand-400',
+  medium: 'bg-amber-500/10 text-amber-400',
+  high:   'bg-red-500/10 text-red-400',
 }
 
 export default function SuggestionCard({ suggestion, index }) {
@@ -29,9 +29,9 @@ export default function SuggestionCard({ suggestion, index }) {
       style={{ animationDelay: `${index * 80}ms` }}>
 
       {/* Top-right badge icon */}
-      <div className="absolute top-4 right-4 w-9 h-9 rounded-xl bg-brand-400
-          flex items-center justify-center shadow-sm">
-        <Cpu size={16} className="text-white" />
+      <div className="absolute top-4 right-4 w-9 h-9 rounded-xl bg-brand-500
+          flex items-center justify-center shadow-lg shadow-brand-500/20">
+        <Cpu size={16} className="text-black" />
       </div>
 
       {/* Category label */}
@@ -42,10 +42,10 @@ export default function SuggestionCard({ suggestion, index }) {
       </div>
 
       {/* Title */}
-      <h3 className="font-bold text-gray-900 text-base leading-snug pr-10 mb-2">
+      <h3 className="font-bold text-white/90 text-base leading-snug pr-10 mb-2">
         {suggestion.title}
       </h3>
-      <p className="text-sm text-gray-500 leading-relaxed mb-4">
+      <p className="text-sm text-white/60 leading-relaxed mb-4">
         {suggestion.description}
       </p>
 
@@ -63,21 +63,21 @@ export default function SuggestionCard({ suggestion, index }) {
         <span className={clsx('agent-tag text-xs', EFFORT_COLORS[suggestion.effort_level])}>
           {suggestion.effort_level} effort
         </span>
-        <span className="agent-tag bg-gray-100 text-gray-600 text-xs">
+        <span className="agent-tag bg-white/5 text-white/50 border border-white/5 text-xs">
           {suggestion.execution_speed} execution
         </span>
       </div>
 
       {/* Metrics */}
-      <div className="grid grid-cols-2 gap-3 pt-3 border-t border-gray-100">
+      <div className="grid grid-cols-2 gap-3 pt-3 border-t border-white/5">
         <Metric
-          icon={<Shield size={13} className="text-brand-400" />}
+          icon={<Shield size={13} className="text-brand-500" />}
           label="Accuracy"
           value={`${suggestion.accuracy_estimate}%`}
           bold
         />
         <Metric
-          icon={<Zap size={13} className="text-amber-400" />}
+          icon={<Zap size={13} className="text-amber-500" />}
           label="ROI Impact"
           value={suggestion.roi_impact}
           valueClass={ROI_COLORS[suggestion.roi_impact]}
@@ -88,7 +88,7 @@ export default function SuggestionCard({ suggestion, index }) {
       {suggestion.technologies?.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-1.5">
           {suggestion.technologies.map(t => (
-            <span key={t} className="text-xs px-2 py-0.5 bg-gray-100 text-gray-500 rounded-md font-mono">
+            <span key={t} className="text-xs px-2 py-0.5 bg-white/5 text-white/50 rounded-md font-mono border border-white/5">
               {t}
             </span>
           ))}
