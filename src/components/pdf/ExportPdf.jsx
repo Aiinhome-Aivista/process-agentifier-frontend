@@ -26,61 +26,76 @@ export default function ExportPDF({ data }) {
       const contentWidth = pageWidth - (2 * margin);
       const usableHeightMm = pageHeight - (2 * margin);
 
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Wait for components and charts to fully render
+      await new Promise(resolve => setTimeout(resolve, 3000));
 
-      const sections = element.querySelectorAll('.pdf-section');
-      
-      for (let i = 0; i < sections.length; i++) {
-        const section = sections[i];
-        const canvas = await html2canvas(section, {
+      const atoms = element.querySelectorAll('.pdf-atomic');
+      if (atoms.length === 0) return;
+
+      let currentYMm = margin;
+      let isFirstPage = true;
+
+      for (let i = 0; i < atoms.length; i++) {
+        const atom = atoms[i];
+
+        // Capture individual atom
+        const canvas = await html2canvas(atom, {
           scale: 2,
           useCORS: true,
           logging: false,
           backgroundColor: "#ffffff",
         });
 
-        const sectionWidthPx = canvas.width;
-        const sectionHeightPx = canvas.height;
-        const pxPerMm = sectionWidthPx / contentWidth;
-        const usableHeightPx = usableHeightMm * pxPerMm;
+        const atomWidthPx = canvas.width;
+        const atomHeightPx = canvas.height;
+        const pxPerMm = atomWidthPx / contentWidth;
+        const atomHeightMm = atomHeightPx / pxPerMm;
 
-        let yOffsetPx = 0;
-        let isFirstSlice = true;
+        // Aggressive safety buffer (10mm) to ensure elements far away from page edges
+        const remainingSpaceMm = pageHeight - margin - currentYMm;
 
-        while (yOffsetPx < sectionHeightPx) {
-          if (!isFirstSlice || i > 0) pdf.addPage();
-          
-          const sliceHeightPx = Math.min(usableHeightPx, sectionHeightPx - yOffsetPx);
-          
-          // Create a temporary canvas for this specific page slice
-          const sliceCanvas = document.createElement('canvas');
-          sliceCanvas.width = sectionWidthPx;
-          sliceCanvas.height = sliceHeightPx;
-          
-          const ctx = sliceCanvas.getContext('2d');
-          ctx.fillStyle = "#ffffff";
-          ctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
-          
-          // Draw just the part of the image we want for this page
-          ctx.drawImage(
-            canvas,
-            0, yOffsetPx, sectionWidthPx, sliceHeightPx, // Source coordinates
-            0, 0, sectionWidthPx, sliceHeightPx        // Destination coordinates
-          );
-          
-          const sliceImgData = sliceCanvas.toDataURL("image/png");
-          const sliceHeightMm = sliceHeightPx / pxPerMm;
-          
-          pdf.addImage(sliceImgData, "PNG", margin, margin, contentWidth, sliceHeightMm);
-          
-          yOffsetPx += usableHeightPx;
-          isFirstSlice = false;
+        if (!isFirstPage && (atomHeightMm > remainingSpaceMm - 10)) {
+          pdf.addPage();
+          currentYMm = margin;
         }
+
+        // Handle case where a single atom is taller than the whole page (e.g. huge table)
+        if (atomHeightMm > usableHeightMm) {
+          let yOffsetPx = 0;
+          while (yOffsetPx < atomHeightPx) {
+            if (yOffsetPx > 0) {
+              pdf.addPage();
+              currentYMm = margin;
+            }
+
+            const sliceHeightPx = Math.min(usableHeightMm * pxPerMm, atomHeightPx - yOffsetPx);
+            const sliceCanvas = document.createElement('canvas');
+            sliceCanvas.width = atomWidthPx;
+            sliceCanvas.height = sliceHeightPx;
+            const ctx = sliceCanvas.getContext('2d');
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
+            ctx.drawImage(canvas, 0, yOffsetPx, atomWidthPx, sliceHeightPx, 0, 0, atomWidthPx, sliceHeightPx);
+
+            const sliceImgData = sliceCanvas.toDataURL("image/png");
+            pdf.addImage(sliceImgData, "PNG", margin, currentYMm, contentWidth, sliceHeightPx / pxPerMm);
+
+            yOffsetPx += (usableHeightMm * pxPerMm);
+            currentYMm += (sliceHeightPx / pxPerMm);
+          }
+        } else {
+          // Standard size atom: just add it
+          const imgData = canvas.toDataURL("image/png");
+          pdf.addImage(imgData, "PNG", margin, currentYMm, contentWidth, atomHeightMm);
+          currentYMm += atomHeightMm + 5; // 5mm gap between atoms
+        }
+
+        isFirstPage = false;
       }
 
       pdf.save(`${process.title?.replace(/\s+/g, "_") || "Process"}_Report.pdf`);
     } catch (error) {
-      console.error("PDF Export failed:", error);
+      console.error("Atomic PDF Export failed:", error);
     } finally {
       setIsExporting(false);
     }
@@ -123,60 +138,47 @@ export default function ExportPDF({ data }) {
           className="pdf-report"
           style={{
             width: "800px",
-            padding: "60px",
+            padding: "40px",
           }}
         >
           <PDFProvider value={true}>
-            <div className="space-y-4">
-              {/* COVER PAGE */}
-              <div className="pdf-section min-h-[850px] flex flex-col justify-center pb-20 text-left px-10 mb-0">
-                <div className="mb-12">
-                   <p className="text-brand-600 font-black text-xs uppercase tracking-[0.4em] mb-4">Automation Intelligence Report</p>
-                   <h1 className="text-5xl font-black text-gray-900 leading-[1.1] tracking-tight mb-8">
-                     {process.title || "Process Analysis"}
-                   </h1>
-                 
-                </div>
-                
-                <div className="max-w-2xl mb-16">
-                  <p className="text-xl text-gray-600 leading-relaxed font-semibold">
-                    {process.description}
-                  </p>
-                </div>
+            <div className="flex flex-col text-left">
+              {/* COVER PAGE ATOMS */}
+              <div className="pdf-atomic py-20 px-10">
+                <p className="text-brand-600 font-black text-xs uppercase tracking-[0.4em] mb-4">Automation Intelligence Report</p>
+                <h1 className="text-4xl font-black text-gray-900 leading-[1.1] tracking-tight mb-4">
+                  {process.title || "Process Analysis"}
+                </h1>
 
+              </div>
+
+              <div className="pdf-atomic px-10 mb-10">
+                <p className="text-xl text-gray-600  font-semibold">
+                  {process.description}
+                </p>
+              </div>
+
+              <div className="pdf-atomic px-10 mb-20">
                 <div className="grid grid-cols-2 gap-12 w-full bg-gray-50 p-10 rounded-[40px] border border-gray-100">
                   <div>
                     <p className="text-[10px] uppercase font-black text-gray-400 tracking-widest mb-3">Automation Score</p>
                     <div className="flex items-baseline gap-2">
-                       <p className="text-7xl font-black text-brand-600">{process.automation_score}%</p>
+                      <p className="text-7xl font-black text-brand-600">{process.automation_score}%</p>
                     </div>
                   </div>
-                 
+                  <div className="border-l border-gray-200 pl-12 flex flex-col justify-center">
+                    <p className="text-[10px] uppercase font-black text-gray-400 tracking-widest mb-3">Report Context</p>
+                    <p className="text-xl font-bold text-gray-900 mb-1">System: {process.erp_system || "Enterprise"}</p>
+                    <p className="text-sm font-medium text-gray-500">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                  </div>
                 </div>
               </div>
 
-
-
-              {/* DETAILED CHAPTERS */}
-              <section className="pdf-section pt-10">
-                <h2 className="pdf-section-title">01. Overview or Insights</h2>
-                <OverviewTab insights={key_insights} topTargets={top_automation_targets} />
-              </section>
-
-              <section className="pdf-section pt-10">
-                <h2 className="pdf-section-title">02. ERP Integration Architecture</h2>
-                <ERPContextTab erpModules={erp_modules} process={process} />
-              </section>
-
-              <section className="pdf-section pt-10">
-                <h2 className="pdf-section-title">03. Dimensional Process Mapping</h2>
-                <MapTab steps={steps} />
-              </section>
-
-              <section className="pdf-section pt-10">
-                <h2 className="pdf-section-title">04. Automation Opportunities</h2>
-                <AutomationTab suggestions={suggestions} />
-              </section>
+              {/* TABS - Already marked with pdf-atomic inside */}
+              <OverviewTab insights={key_insights} topTargets={top_automation_targets} />
+              <ERPContextTab erpModules={erp_modules} process={process} />
+              <MapTab steps={steps} />
+              <AutomationTab suggestions={suggestions} />
             </div>
           </PDFProvider>
         </div>

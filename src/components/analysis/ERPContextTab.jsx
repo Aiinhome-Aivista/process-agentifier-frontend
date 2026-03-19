@@ -52,36 +52,42 @@ export default function ERPContextTab({ erpModules, process }) {
 
   if (isPdf) {
     return (
-      <div className="space-y-8">
-        <div>
-          <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">System & Module Inventory</h3>
-          {hasModules ? (
-            <div className="space-y-6">
-              {erpModules.map((mod, i) => (
-                <div key={i} className="border-l-4 border-brand-500 pl-4 py-1">
-                  <div className="flex justify-between items-baseline mb-2">
+      <div className="pdf-section">
+        <h3 className="pdf-atomic text-lg font-bold text-gray-900 mb-6 border-b pb-2">System & Module Inventory</h3>
+        {hasModules ? (
+          <div className="flex flex-col">
+            {erpModules.map((mod, i) => (
+              <div key={i} className="mb-8 pl-4 border-l-4 border-brand-500">
+                {/* Header Atom */}
+                <div className="pdf-atomic mb-4">
+                  <div className="flex justify-between items-baseline mb-1">
                     <h4 className="text-base font-black text-gray-900 uppercase">{mod.module_name}</h4>
-                    <span className="text-xs font-mono text-gray-400">{mod.source_file}</span>
+                    <span className="text-[10px] font-mono text-gray-400 uppercase">{mod.source_file}</span>
                   </div>
-                  <p className="text-sm text-gray-700 leading-relaxed mb-3">{mod.description}</p>
-
-                  <div className="grid grid-cols-2 gap-4 mt-2">
-                    <div>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Entities</p>
-                      <p className="text-sm text-gray-600">{mod.tables_identified?.join(', ') || 'None'}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Key Fields</p>
-                      <p className="text-sm text-gray-600 line-clamp-2">{mod.fields_identified?.slice(0, 15).join(', ') || 'None'}</p>
-                    </div>
-                  </div>
+                  <p className="text-sm text-gray-700 leading-relaxed font-medium">{mod.description}</p>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-gray-400 italic">No ERP modules were identified during analysis.</p>
-          )}
-        </div>
+
+                {/* Entities Atom */}
+                <div className="pdf-atomic mb-4 bg-gray-50/50 p-3 rounded-lg border border-gray-100">
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Entities Identified</p>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    {mod.tables_identified?.join(', ') || 'None identified'}
+                  </p>
+                </div>
+
+                {/* Fields Atom */}
+                <div className="pdf-atomic bg-white p-3 rounded-lg border border-gray-100">
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Key Technical Fields</p>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    {mod.fields_identified?.slice(0, 20).join(', ') || 'None identified'}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="pdf-atomic text-sm text-gray-400 italic">No ERP modules were identified during analysis.</p>
+        )}
       </div>
     )
   }

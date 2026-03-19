@@ -44,38 +44,43 @@ export default function AutomationChart({ steps }) {
   const gridColor = isPdf ? '#e5e7eb' : '#ffffff10'
 
   return (
-    <div className={isPdf ? "w-full mt-6" : "card p-6 mt-6"}>
+    <div 
+      className={isPdf ? "w-full mt-6 pb-12 bg-white" : "card p-6 mt-6"}
+      style={isPdf ? { height: '400px' } : {}}
+    >
       <h3 className={isPdf ? "text-sm font-bold text-gray-900 mb-6 uppercase tracking-wider" : "text-sm font-semibold text-white/70 mb-6"}>
         Automation Potential Analysis
       </h3>
-      <ResponsiveContainer width="100%" height={260}>
-        <BarChart data={data} margin={{ top: 20, right: 16, left: -10, bottom: 40 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
-          <XAxis
-            dataKey="title"
-            tick={{ fontSize: 10, fill: textColor }}
-            angle={-40}
-            textAnchor="end"
-            interval={0}
-            height={60}
-          />
-          <YAxis
-            domain={[0, 100]}
-            tick={{ fontSize: 10, fill: textColor }}
-            tickFormatter={v => `${v}%`}
-          />
-          <Tooltip content={<CustomTooltip isPdf={isPdf} />} cursor={{ fill: isPdf ? '#f3f4f6' : '#ffffff05' }} />
-          <Bar dataKey="value" radius={[6, 6, 0, 0]} label={<CustomLabel isPdf={isPdf} />}>
-            {data.map((d, i) => (
-              <Cell key={i} fill={getBarColor(d.value)} />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+      <div style={{ height: isPdf ? '280px' : '260px' }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data} margin={{ top: 20, right: 16, left: -10, bottom: 40 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
+            <XAxis
+              dataKey="title"
+              tick={{ fontSize: 10, fill: textColor }}
+              angle={-40}
+              textAnchor="end"
+              interval={0}
+              height={60}
+            />
+            <YAxis
+              domain={[0, 100]}
+              tick={{ fontSize: 10, fill: textColor }}
+              tickFormatter={v => `${v}%`}
+            />
+            <Tooltip content={<CustomTooltip isPdf={isPdf} />} cursor={{ fill: isPdf ? '#f3f4f6' : '#ffffff05' }} />
+            <Bar dataKey="value" radius={[6, 6, 0, 0]} label={<CustomLabel isPdf={isPdf} />}>
+              {data.map((d, i) => (
+                <Cell key={i} fill={getBarColor(d.value)} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
       {/* Legend */}
-      <div className="flex items-center gap-5 mt-2 justify-center">
+      <div className="flex items-center gap-5 mt-6 justify-center">
         {[['#10b981', '≥ 80% High'], ['#f59e0b', '50–79% Medium'], ['#f87171', '< 50% Low']].map(([c, l]) => (
-          <div key={l} className={`flex items-center gap-1.5 text-xs ${isPdf ? 'text-gray-500 font-medium' : 'text-white/40'}`}>
+          <div key={l} className={`flex items-center gap-1.5 text-[10px] ${isPdf ? 'text-gray-500 font-bold' : 'text-white/40'}`}>
             <span className="w-3 h-3 rounded-sm inline-block" style={{ background: c }} />
             {l}
           </div>

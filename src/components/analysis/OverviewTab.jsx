@@ -57,12 +57,12 @@ export default function OverviewTab({ insights, topTargets }) {
 
   if (isPdf) {
     return (
-      <div className="space-y-8">
-        <div>
-          <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">Key Process Insights</h3>
+      <div className="pdf-section">
+        <div className="mb-10">
+          <h3 className="pdf-atomic text-lg font-bold text-gray-900 mb-6 border-b pb-2">Key Process Insights</h3>
           <div className="space-y-4">
             {insights?.map((insight, i) => (
-              <div key={i} className="flex gap-4 items-start">
+              <div key={i} className="pdf-atomic flex gap-4 items-start pb-2">
                 <span className="font-bold text-brand-600">0{i + 1}.</span>
                 <div>
                   <p className="text-gray-900 font-medium">{insight.text}</p>
@@ -76,19 +76,19 @@ export default function OverviewTab({ insights, topTargets }) {
         </div>
 
         <div>
-          <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">Top Automation Targets</h3>
+          <h3 className="pdf-atomic text-lg font-bold text-gray-900 mb-6 border-b pb-2">Top Automation Targets</h3>
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50">
-                <th className="p-2 border text-xs uppercase font-bold text-gray-500">Rank</th>
-                <th className="p-2 border text-xs uppercase font-bold text-gray-500">Title / Process</th>
-                <th className="p-2 border text-xs uppercase font-bold text-gray-500">Actor</th>
-                <th className="p-2 border text-xs uppercase font-bold text-gray-500 text-right">Potential</th>
+                <th className="p-2 border text-[10px] uppercase font-bold text-gray-500">Rank</th>
+                <th className="p-2 border text-[10px] uppercase font-bold text-gray-500">Title / Process</th>
+                <th className="p-2 border text-[10px] uppercase font-bold text-gray-500">Actor</th>
+                <th className="p-2 border text-[10px] uppercase font-bold text-gray-500 text-right">Potential</th>
               </tr>
             </thead>
             <tbody>
               {topTargets?.map((t, i) => (
-                <tr key={i}>
+                <tr key={i} className="pdf-atomic">
                   <td className="p-2 border text-sm text-gray-400 font-mono">{i + 1}</td>
                   <td className="p-2 border text-sm font-bold text-gray-900">{t.title}</td>
                   <td className="p-2 border text-sm text-gray-600">{t.actor}</td>

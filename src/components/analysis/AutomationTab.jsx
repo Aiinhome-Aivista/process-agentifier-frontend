@@ -7,13 +7,13 @@ export default function AutomationTab({ suggestions }) {
 
   if (isPdf) {
     return (
-      <div className="space-y-8">
-        <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">
+      <div className="pdf-section">
+        <h3 className="pdf-atomic text-lg font-bold text-gray-900 mb-6 border-b pb-2">
           {suggestions?.length} Automation Opportunities Identified
         </h3>
         <div className="space-y-10">
           {suggestions?.map((s, i) => (
-            <div key={i} className="relative pl-6 border-l-2 border-gray-100 pb-2">
+            <div key={i} className="pdf-atomic relative pl-6 border-l-2 border-gray-100 pb-2 mb-8">
               <div className="absolute -left-[5px] top-0 w-2 h-2 rounded-full bg-brand-500" />
               <div className="flex justify-between items-start mb-2">
                 <h4 className="text-base font-bold text-gray-900 leading-tight pr-20">{s.title}</h4>
@@ -38,7 +38,7 @@ export default function AutomationTab({ suggestions }) {
               </div>
               <div className="mt-3">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Stack / Tech</p>
-                <p className="text-xs font-mono text-gray-500">{s.technologies?.join(', ')}</p>
+                <p className="text-xs font-mono text-gray-500 truncate">{s.technologies?.join(', ')}</p>
               </div>
             </div>
           ))}

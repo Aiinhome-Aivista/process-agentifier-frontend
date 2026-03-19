@@ -16,13 +16,13 @@ export default function MapTab({ steps }) {
 
   if (isPDF) {
     return (
-      <div className="space-y-12">
+      <div className="pdf-section">
         <div>
-          <h3 className="text-lg font-bold text-gray-900 mb-6 border-b pb-2">Process Step Breakdown</h3>
-          <div className="space-y-6">
+          <h3 className="pdf-atomic text-lg font-bold text-gray-900 mb-6 border-b pb-2">Process Step Breakdown</h3>
+          <div className="space-y-4">
             {steps?.map((step, i) => (
-              <div key={i} className="flex gap-6 pb-6 border-b border-gray-100 last:border-0">
-                <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center font-black text-gray-300 text-lg shrink-0">
+              <div key={i} className="pdf-atomic flex gap-6 pb-4 border-b border-gray-100 last:border-0 mb-2">
+                <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center font-black text-gray-300 text-base shrink-0">
                   {i + 1}
                 </div>
                 <div className="flex-1">
@@ -32,7 +32,7 @@ export default function MapTab({ steps }) {
                       {step.automation_potential}% Potential
                     </span>
                   </div>
-                  <div className="flex gap-4 text-[10px] uppercase font-bold text-gray-400 mb-2">
+                  <div className="flex gap-4 text-[10px] uppercase font-bold text-gray-400">
                     <span>{step.type}</span>
                     <span>•</span>
                     <span>{step.actor}</span>
@@ -43,9 +43,11 @@ export default function MapTab({ steps }) {
           </div>
         </div>
 
-        <div className="pt-8">
+        <div className="pt-10 pdf-atomic">
           <h3 className="text-lg font-bold text-gray-900 mb-6 border-b pb-2">Automation Potential Variance</h3>
-          <AutomationChart steps={steps} />
+          <div className="chart-container-pdf">
+            <AutomationChart steps={steps} />
+          </div>
         </div>
       </div>
     )
