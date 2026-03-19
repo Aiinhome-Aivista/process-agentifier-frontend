@@ -87,9 +87,9 @@ export default function StepCard({ step, index, isLast }) {
       {/* Arrow connector */}
       {!isLast && (
         <div className="flex items-center self-center shrink-0 mt-4">
-          <div className="w-6 h-px bg-white/10" />
+          <div className="w-6 h-px bg-white" />
           <div className="w-0 h-0 border-t-4 border-b-4 border-l-4
-              border-t-transparent border-b-transparent border-l-white/10" />
+              border-t-transparent border-b-transparent border-l-white" />
         </div>
       )}
     </div>
