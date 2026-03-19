@@ -1,0 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --brand: #1d9e75;
+    --brand-light: #e8f5f0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    @apply bg-gray-50 text-gray-900 antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { @apply bg-transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-gray-300 rounded-full; }
+}
+
+@layer components {
+  .card {
+    @apply bg-white rounded-2xl border border-gray-100 shadow-sm;
+  }
+  .btn-primary {
+    @apply bg-brand-400 hover:bg-brand-500 text-white font-medium px-5 py-2.5 rounded-xl
+           transition-all duration-200 active:scale-95 inline-flex items-center gap-2;
+  }
+  .btn-secondary {
+    @apply bg-white hover:bg-gray-50 text-gray-700 font-medium px-5 py-2.5 rounded-xl
+           border border-gray-200 transition-all duration-200 active:scale-95 inline-flex items-center gap-2;
+  }
+  .tab-btn {
+    @apply px-5 py-2 rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer;
+  }
+  .tab-active {
+    @apply bg-white text-gray-900 shadow-sm border border-gray-200;
+  }
+  .tab-inactive {
+    @apply text-gray-500 hover:text-gray-700;
+  }
+  .score-badge {
+    @apply text-brand-400 font-bold tabular-nums;
+  }
+  .agent-tag {
+    @apply text-xs font-medium px-2.5 py-1 rounded-full;
+  }
+}
+
+/* Automation score counter animation */
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-count { animation: countUp 0.8s ease-out forwards; }
+
+/* Drop zone states */
+.dropzone-active {
+  @apply border-brand-400 bg-brand-50;
+}
