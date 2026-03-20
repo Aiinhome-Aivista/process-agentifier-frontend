@@ -38,7 +38,7 @@ function Layout() {
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
+      <BrowserRouter basename="/agentforcex">
         <Layout />
       </BrowserRouter>
     </AuthProvider>
