@@ -105,3 +105,17 @@
 .pdf-data-value {
   @apply w-2/3 text-sm text-gray-900;
 }
+
+.pdf-atomic,
+.pdf-section {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.pdf-report {
+  page-break-after: auto;
+}
+
+.page-break {
+  page-break-before: always;
+}

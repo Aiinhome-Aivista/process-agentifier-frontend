@@ -152,8 +152,8 @@ export default function ExportPDF({ data }) {
 
               </div>
 
-              <div className="pdf-atomic px-10 mb-10">
-                <p className="text-xl text-gray-600  font-semibold">
+              <div className="pdf-atomic px-8 mb-8">
+                <p className="text-lg text-gray-600 font-semibold whitespace-pre-line break-words">
                   {process.description}
                 </p>
               </div>
