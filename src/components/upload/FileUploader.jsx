@@ -15,6 +15,8 @@ export default function FileUploader({ onAnalyze, loading }) {
   const [dragging, setDragging] = useState(false)
   const [error, setError] = useState('')
   const [tab, setTab] = useState('erp') // 'docs' | 'erp'
+  const [erpText, setErpText] = useState('')
+  const [docText, setDocText] = useState('')
   const inputRef = useRef()
 
   const addFiles = useCallback((incoming) => {
@@ -40,7 +42,12 @@ export default function FileUploader({ onAnalyze, loading }) {
   const removeFile = (name) => setFiles(f => f.filter(x => x.name !== name))
 
   const handleSubmit = () => {
-    if (!files.length) { setError('Please upload at least one file.'); return }
+    if (files.length === 0) {
+      setError('Please upload at least one file.');
+      return;
+    }
+
+    // Only sending files as per request
     onAnalyze(files)
   }
 
@@ -95,6 +102,35 @@ export default function FileUploader({ onAnalyze, loading }) {
               : ['PDF', 'DOCX', 'TXT'].map(t => <FileTag key={t} label={t} />)}
           </div>
         </div>
+
+        {/* Integrated Text Input */}
+        <div
+          className="mt-8 px-4 w-full relative z-20"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between px-1 mb-2">
+            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">
+              User Input
+            </label>
+          </div>
+          <div className="relative group/text">
+            <input
+              type="text"
+              value={tab === 'erp' ? erpText : docText}
+              onChange={(e) => tab === 'erp' ? setErpText(e.target.value) : setDocText(e.target.value)}
+              placeholder={tab === 'erp'
+                ? "Paste raw CSV data or log exports here..."
+                : "Describe the process steps, roles, and systems involved..."}
+              className="w-full h-11 bg-white/[0.01] backdrop-blur-sm border border-white/10 rounded-xl px-4
+                  text-sm text-white placeholder:text-white/10 outline-none
+                  focus:border-brand-500/50 focus:bg-white/[0.015] transition-all font-medium"
+            />
+            <div className="absolute top-1/2 -translate-y-1/2 right-4 opacity-0 group-focus-within/text:opacity-100 transition-opacity">
+              <div className="w-1 h-1 rounded-full bg-brand-500 shadow-[0_0_8px_rgba(var(--brand-500-rgb),0.5)]" />
+            </div>
+          </div>
+        </div>
+
       </div>
 
       {/* File list */}
@@ -133,8 +169,8 @@ export default function FileUploader({ onAnalyze, loading }) {
       <button
         onClick={handleSubmit}
         disabled={loading || files.length === 0}
-        className="w-full btn-primary justify-center py-3 text-base disabled:opacity-50
-            disabled:cursor-not-allowed"
+        className="w-full btn-primary justify-center py-3 text-base disabled:opacity-40
+            disabled:cursor-not-allowed shadow-xl shadow-brand-500/10"
       >
         {loading
           ? <><Loader2 size={18} className="animate-spin" />Analyzing Process...</>
