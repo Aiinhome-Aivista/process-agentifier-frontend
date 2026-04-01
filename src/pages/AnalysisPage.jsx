@@ -75,6 +75,7 @@ export default function AnalysisPage() {
             insights={key_insights}
             topTargets={top_automation_targets}
             steps={steps}
+            suggestions={suggestions}
           />
         )}
         {activeTab === 'erp' && (

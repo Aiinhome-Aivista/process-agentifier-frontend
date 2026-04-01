@@ -41,14 +41,17 @@ function AutomationBar({ value }) {
   )
 }
 
-export default function StepCard({ step, index, isLast }) {
+export default function StepCard({ step, index, isLast, onClick }) {
   const Icon = STEP_TYPE_ICONS[step.step_type] || User
   const typeColor = STEP_TYPE_COLORS[step.step_type] || STEP_TYPE_COLORS.manual
 
   return (
     <div className="flex items-start gap-3 shrink-0 w-64">
       {/* Card */}
-      <div className="card p-4 w-full hover:shadow-md transition-shadow duration-200 animate-slide-up"
+      <div
+        onClick={onClick}
+        className="card p-4 w-full cursor-pointer hover:bg-white/[0.08] hover:ring-1 hover:ring-brand-500/30
+            transition-all duration-200 animate-slide-up group"
         style={{ animationDelay: `${index * 60}ms` }}>
         {/* Header */}
         <div className="flex items-start justify-between gap-2 mb-2">
@@ -62,7 +65,7 @@ export default function StepCard({ step, index, isLast }) {
         </div>
 
         {/* Title */}
-        <h3 className="font-semibold text-white/90 text-sm leading-snug mb-1">
+        <h3 className="font-semibold text-white/90 text-sm leading-snug mb-1 group-hover:text-brand-400 transition-colors">
           {step.title}
         </h3>
         <p className="text-xs text-white/50 leading-relaxed line-clamp-3">
@@ -95,4 +98,5 @@ export default function StepCard({ step, index, isLast }) {
     </div>
   )
 }
+
 

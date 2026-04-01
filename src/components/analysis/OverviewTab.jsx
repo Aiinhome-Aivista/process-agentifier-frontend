@@ -1,9 +1,10 @@
-import { useRef } from 'react'
-import { ChevronRight, ChevronLeft, TrendingUp } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { ChevronRight, ChevronLeft, TrendingUp, ArrowLeft, Zap } from 'lucide-react'
 import { usePDF } from '../../context/PdfContext'
 import clsx from 'clsx'
 import StepCard from './StepCard'
 import AutomationChart from '../charts/AutomationChart'
+import SuggestionCard from '../automation/SuggestionCard'
 
 
 const IMPACT_COLORS = {
@@ -55,13 +56,18 @@ function TopTarget({ item, rank }) {
   )
 }
 
-export default function OverviewTab({ insights, topTargets, steps }) {
+export default function OverviewTab({ insights, topTargets, steps, suggestions }) {
   const isPdf = usePDF()
   const scrollRef = useRef()
+  const [selectedStep, setSelectedStep] = useState(null)
 
   const scroll = (dir) => {
     scrollRef.current?.scrollBy({ left: dir * 300, behavior: 'smooth' })
   }
+
+  const stepSuggestions = selectedStep
+    ? (suggestions?.filter(s => s.step_key === selectedStep.id) || [])
+    : []
 
   if (isPdf) {
     return (
@@ -162,46 +168,114 @@ export default function OverviewTab({ insights, topTargets, steps }) {
       {/* Process Map section */}
       {steps?.length > 0 && (
         <div className="space-y-6">
-          <h2 className="text-base font-semibold text-white/90">Process Steps Mapping</h2>
 
-          {/* Step cards with nav arrows */}
-          <div className="relative">
-            <button
-              onClick={() => scroll(-1)}
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10
-                  w-8 h-8 rounded-full bg-white/5 backdrop-blur-md border border-white/10
-                  flex items-center justify-center hover:bg-white/10 transition-colors"
-            >
-              <ChevronLeft size={16} className="text-white/60" />
-            </button>
+          {selectedStep ? (
+            /* ── DETAIL VIEW ── */
+            <div className="space-y-5">
 
-            <div
-              ref={scrollRef}
-              className="flex items-start gap-4 pb-4 scroll-smooth scrollbar-thin px-2 overflow-x-auto"
-              style={{ scrollbarWidth: 'thin' }}
-            >
-              {steps.map((step, i) => (
-                <StepCard
-                  key={step.id || i}
-                  step={step}
-                  index={i}
-                  isLast={i === steps.length - 1}
-                />
-              ))}
+              {/* Breadcrumb + back */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setSelectedStep(null)}
+                  className="flex items-center gap-1.5 text-xs font-bold text-white/40
+                      hover:text-white transition-colors group"
+                >
+                  <ArrowLeft size={13} className="group-hover:-translate-x-0.5 transition-transform" />
+                  Back
+                </button>
+                <span className="text-white/20">·</span>
+                <nav className="flex items-center gap-1.5 text-xs text-white/30">
+                  <span
+                    onClick={() => setSelectedStep(null)}
+                    className="hover:text-white/60 cursor-pointer transition-colors"
+                  >
+                    Process Steps Mapping
+                  </span>
+                  <ChevronRight size={11} className="text-white/20" />
+                  <span className="text-brand-400 font-semibold truncate max-w-xs">
+                    {selectedStep.title}
+                  </span>
+                </nav>
+              </div>
+
+              {/* Step summary pill */}
+              <div className="flex flex-wrap items-center gap-3 px-4 py-3 bg-white/5 border border-white/10 rounded-xl w-fit">
+                <span className="text-xs font-mono text-white/30">Step {selectedStep.step_number}</span>
+                <span className="w-px h-3 bg-white/10" />
+                <span className="text-sm font-semibold text-white/80">{selectedStep.title}</span>
+                <span className="w-px h-3 bg-white/10" />
+                <span className="text-xs text-white/40">{selectedStep.actor}</span>
+                <span className="w-px h-3 bg-white/10" />
+                <span className="text-xs font-bold text-brand-500">{selectedStep.automation_potential}% potential</span>
+              </div>
+
+              {/* Suggestions */}
+              {stepSuggestions.length > 0 ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Zap size={13} className="text-brand-500" fill="currentColor" />
+                    <p className="text-xs font-black uppercase tracking-widest text-white/40">
+                      {stepSuggestions.length} Automation Suggestion{stepSuggestions.length > 1 ? 's' : ''}
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {stepSuggestions.map((s, i) => (
+                      <SuggestionCard key={s.id || i} suggestion={s} index={i} />
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <Zap size={28} className="text-white/10 mb-3" />
+                  <p className="text-sm text-white/30">No automation suggestions for this step.</p>
+                </div>
+              )}
             </div>
 
-            <button
-              onClick={() => scroll(1)}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10
-                  w-8 h-8 rounded-full bg-white/5 backdrop-blur-md border border-white/10
-                  flex items-center justify-center hover:bg-white/10 transition-colors"
-            >
-              <ChevronRight size={16} className="text-white/60" />
-            </button>
-          </div>
+          ) : (
+            /* ── MAP VIEW ── */
+            <>
+              <h2 className="text-base font-semibold text-white/90">Process Steps Mapping</h2>
 
-          {/* Automation bar chart */}
-          <AutomationChart steps={steps} />
+              <div className="relative">
+                <button
+                  onClick={() => scroll(-1)}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10
+                      w-8 h-8 rounded-full bg-white/5 backdrop-blur-md border border-white/10
+                      flex items-center justify-center hover:bg-white/10 transition-colors"
+                >
+                  <ChevronLeft size={16} className="text-white/60" />
+                </button>
+
+                <div
+                  ref={scrollRef}
+                  className="flex items-start gap-4 pb-4 scroll-smooth scrollbar-thin px-2 overflow-x-auto"
+                  style={{ scrollbarWidth: 'thin' }}
+                >
+                  {steps.map((step, i) => (
+                    <StepCard
+                      key={step.id || i}
+                      step={step}
+                      index={i}
+                      isLast={i === steps.length - 1}
+                      onClick={() => setSelectedStep(step)}
+                    />
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => scroll(1)}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10
+                      w-8 h-8 rounded-full bg-white/5 backdrop-blur-md border border-white/10
+                      flex items-center justify-center hover:bg-white/10 transition-colors"
+                >
+                  <ChevronRight size={16} className="text-white/60" />
+                </button>
+              </div>
+
+              <AutomationChart steps={steps} />
+            </>
+          )}
         </div>
       )}
       {/* Overview row: insights + top targets */}
