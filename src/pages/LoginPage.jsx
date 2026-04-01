@@ -2,6 +2,7 @@ import { useAuth } from '../context/AuthContext'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Mail, Lock, Eye, EyeOff, Zap, Loader2 } from 'lucide-react'
+import { loginUser } from '../services/api'
 
 
 export default function LoginPage() {
@@ -18,25 +19,21 @@ export default function LoginPage() {
 
     const handleLogin = async (e) => {
         e.preventDefault()
-        // if (!isValid) return
-
         setLoading(true)
         setError('')
 
         try {
-            const validEmail = 'demo@gmail.com'
-            const validPassword = '123456'
-            await new Promise((res) => setTimeout(res, 500))
-
-            if (email === validEmail && password === validPassword) {
-                login(email)
+            const res = await loginUser(email, password)
+            // res is already unwrapped by the axios interceptor → res = { data, message, status, statuscode }
+            if (res.status) {
+                login(res.data)       // { id, name } stored in AuthContext
                 navigate('/home')
             } else {
-                throw new Error('Invalid credentials')
+                setError(res.message || 'Login failed')
             }
-
         } catch (err) {
-            setError('Invalid email or password')
+            // Server returned a non-2xx (e.g. 401) — message comes from interceptor
+            setError(err.message || 'Invalid email or password')
         } finally {
             setLoading(false)
         }

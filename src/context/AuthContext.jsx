@@ -3,24 +3,29 @@ import { createContext, useContext, useState } from 'react';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [userEmail, setUserEmail] = useState(() => {
-    return localStorage.getItem('userEmail') || null;
+  const [user, setUser] = useState(() => {
+    try {
+      const stored = localStorage.getItem('user');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
   });
 
-  const login = (email) => {
-    setUserEmail(email);
-    localStorage.setItem('userEmail', email);
+  const login = (userData) => {
+    setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
   };
 
   const logout = () => {
-    setUserEmail(null);
-    localStorage.removeItem('userEmail');
+    setUser(null);
+    localStorage.removeItem('user');
   };
 
-  const isAuthenticated = !!userEmail;
+  const isAuthenticated = !!user;
 
   return (
-    <AuthContext.Provider value={{ userEmail, isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

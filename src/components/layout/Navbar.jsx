@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 
 export default function Navbar() {
   const navigate = useNavigate()
-  const { logout } = useAuth()
+  const { logout, user } = useAuth()
 
   const handleLogout = () => {
     logout()
@@ -28,7 +28,7 @@ export default function Navbar() {
         
         <div className="flex items-center gap-6">
           <h1 className='font-semibold text-brand-500 text-sm'>
-            Welcome aiinhome
+            Welcome {user?.name}
           </h1>
           <button
             onClick={handleLogout}

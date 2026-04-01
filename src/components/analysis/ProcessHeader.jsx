@@ -28,7 +28,6 @@ function AnimatedScore({ target }) {
 const TABS = [
   { id: 'overview', label: 'Overview' },
   { id: 'erp', label: 'ERP Context' },
-  { id: 'map', label: 'Map' },
   { id: 'automation', label: 'Automation' },
 ]
 

@@ -3,7 +3,6 @@ import { useParams, useLocation, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import ProcessHeader from '../components/analysis/ProcessHeader'
 import OverviewTab from '../components/analysis/OverviewTab'
-import MapTab from '../components/analysis/MapTab'
 import ERPContextTab from '../components/analysis/ERPContextTab'
 import AutomationTab from '../components/analysis/AutomationTab'
 import ExportPDF from '../components/pdf/ExportPdf'
@@ -75,10 +74,8 @@ export default function AnalysisPage() {
           <OverviewTab
             insights={key_insights}
             topTargets={top_automation_targets}
+            steps={steps}
           />
-        )}
-        {activeTab === 'map' && (
-          <MapTab steps={steps} />
         )}
         {activeTab === 'erp' && (
           <ERPContextTab erpModules={erp_modules} process={process} />

@@ -1,6 +1,9 @@
-import { ChevronRight, TrendingUp } from 'lucide-react'
+import { useRef } from 'react'
+import { ChevronRight, ChevronLeft, TrendingUp } from 'lucide-react'
 import { usePDF } from '../../context/PdfContext'
 import clsx from 'clsx'
+import StepCard from './StepCard'
+import AutomationChart from '../charts/AutomationChart'
 
 
 const IMPACT_COLORS = {
@@ -52,8 +55,13 @@ function TopTarget({ item, rank }) {
   )
 }
 
-export default function OverviewTab({ insights, topTargets }) {
+export default function OverviewTab({ insights, topTargets, steps }) {
   const isPdf = usePDF()
+
+  const scrollRef = useRef()
+  const scroll = (dir) => {
+    scrollRef.current?.scrollBy({ left: dir * 300, behavior: 'smooth' })
+  }
 
   if (isPdf) {
     return (
@@ -98,6 +106,50 @@ export default function OverviewTab({ insights, topTargets }) {
             </tbody>
           </table>
         </div>
+
+        {/* PDF: Step Breakdown */}
+        <div className="pdf-section mt-10">
+          <h3 className="pdf-atomic text-lg font-bold text-gray-900 mb-6 border-b pb-2">Process Step Breakdown</h3>
+          <div className="space-y-4">
+            {steps?.map((step, i) => (
+              <div key={i} className="pdf-atomic flex gap-6 relative">
+                <div className="flex flex-col items-center shrink-0">
+                  <div className="w-2 h-2 rounded-full bg-gray-400 mt-3 z-10" />
+                  {i < steps.length - 1 && (
+                    <div className="w-px bg-gray-200 flex-1 my-1" />
+                  )}
+                </div>
+                <div className="flex-1 pb-6 pt-0">
+                  <div className="bg-gray-100 border border-gray-200 rounded-2xl p-5 shadow-sm">
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="text-xl font-black text-gray-900 leading-tight">{step.title}</h4>
+                      <span className="text-[10px] font-black uppercase text-white bg-brand-600 px-3 py-1 rounded-full">
+                        {step.automation_potential}% POTENTIAL
+                      </span>
+                    </div>
+                    <div className="flex gap-4 text-[10px] uppercase font-black text-gray-500 mb-3 tracking-widest">
+                      <span className="text-brand-700">{step.actor}</span>
+                      {step.step_type && (
+                        <>
+                          <span className="opacity-30">•</span>
+                          <span>{step.step_type}</span>
+                        </>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-800 leading-relaxed font-medium">{step.description}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="pt-10 pdf-atomic">
+            <h3 className="text-lg font-bold text-gray-900 mb-6 border-b pb-2">Automation Potential Variance</h3>
+            <div className="chart-container-pdf">
+              <AutomationChart steps={steps} />
+            </div>
+          </div>
+        </div>
       </div>
     )
   }
@@ -106,33 +158,81 @@ export default function OverviewTab({ insights, topTargets }) {
   const right = insights?.slice(Math.ceil(insights.length / 2)) || []
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
-      {/* Key Insights — 2/3 width */}
-      <div className="lg:col-span-2">
-        <h2 className="text-base font-semibold text-white/90 mb-4">Key Process Insights</h2>
-        {insights?.length ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {insights.map((insight, i) => (
-              <InsightCard key={i} insight={insight} />
-            ))}
-          </div>
-        ) : (
-          <p className="text-sm text-white/40">No insights available.</p>
-        )}
-      </div>
+    <div className="space-y-10 animate-fade-in">
+      {/* Process Map section */}
+      {steps?.length > 0 && (
+        <div className="space-y-6">
+          <h2 className="text-base font-semibold text-white/90">Process Steps</h2>
 
-      {/* Top Automation Targets — 1/3 width */}
-      <div>
-        <div className="flex items-center gap-2 mb-4">
-          <TrendingUp size={16} className="text-brand-500" />
-          <h2 className="text-base font-semibold text-white/90">Top Automation Targets</h2>
+          {/* Step cards with nav arrows */}
+          <div className="relative">
+            <button
+              onClick={() => scroll(-1)}
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10
+                  w-8 h-8 rounded-full bg-white/5 backdrop-blur-md border border-white/10
+                  flex items-center justify-center hover:bg-white/10 transition-colors"
+            >
+              <ChevronLeft size={16} className="text-white/60" />
+            </button>
+
+            <div
+              ref={scrollRef}
+              className="flex items-start gap-4 pb-4 scroll-smooth scrollbar-thin px-2 overflow-x-auto"
+              style={{ scrollbarWidth: 'thin' }}
+            >
+              {steps.map((step, i) => (
+                <StepCard
+                  key={step.id || i}
+                  step={step}
+                  index={i}
+                  isLast={i === steps.length - 1}
+                />
+              ))}
+            </div>
+
+            <button
+              onClick={() => scroll(1)}
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10
+                  w-8 h-8 rounded-full bg-white/5 backdrop-blur-md border border-white/10
+                  flex items-center justify-center hover:bg-white/10 transition-colors"
+            >
+              <ChevronRight size={16} className="text-white/60" />
+            </button>
+          </div>
+
+          {/* Automation bar chart */}
+          <AutomationChart steps={steps} />
         </div>
-        <div className="card p-4">
-          {topTargets?.length ? (
-            topTargets.map((t, i) => <TopTarget key={i} item={t} rank={i + 1} />)
+      )}
+      {/* Overview row: insights + top targets */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Key Insights — 2/3 width */}
+        <div className="lg:col-span-2">
+          <h2 className="text-base font-semibold text-white/90 mb-4">Key Process Insights</h2>
+          {insights?.length ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {insights.map((insight, i) => (
+                <InsightCard key={i} insight={insight} />
+              ))}
+            </div>
           ) : (
-            <p className="text-sm text-white/40">No targets identified.</p>
+            <p className="text-sm text-white/40">No insights available.</p>
           )}
+        </div>
+
+        {/* Top Automation Targets — 1/3 width */}
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <TrendingUp size={16} className="text-brand-500" />
+            <h2 className="text-base font-semibold text-white/90">Top Automation Targets</h2>
+          </div>
+          <div className="card p-4">
+            {topTargets?.length ? (
+              topTargets.map((t, i) => <TopTarget key={i} item={t} rank={i + 1} />)
+            ) : (
+              <p className="text-sm text-white/40">No targets identified.</p>
+            )}
+          </div>
         </div>
       </div>
     </div>

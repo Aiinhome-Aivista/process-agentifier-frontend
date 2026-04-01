@@ -6,7 +6,6 @@ import { PDFProvider } from "../../context/PdfContext";
 
 import AutomationTab from "../analysis/AutomationTab";
 import ERPContextTab from "../analysis/ERPContextTab";
-import MapTab from "../analysis/MapTab";
 import OverviewTab from "../analysis/OverviewTab";
 
 export default function ExportPDF({ data }) {
@@ -175,9 +174,8 @@ export default function ExportPDF({ data }) {
               </div>
 
               {/* TABS - Already marked with pdf-atomic inside */}
-              <OverviewTab insights={key_insights} topTargets={top_automation_targets} />
+              <OverviewTab insights={key_insights} topTargets={top_automation_targets} steps={steps} />
               <ERPContextTab erpModules={erp_modules} process={process} />
-              <MapTab steps={steps} />
               <AutomationTab suggestions={suggestions} />
             </div>
           </PDFProvider>
