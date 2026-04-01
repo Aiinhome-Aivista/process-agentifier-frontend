@@ -95,3 +95,4 @@ export default function StepCard({ step, index, isLast }) {
     </div>
   )
 }
+

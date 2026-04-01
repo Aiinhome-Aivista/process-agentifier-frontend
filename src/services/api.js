@@ -12,7 +12,7 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL
 // console.log(import.meta.env.VITE_API_BASE_URL)
 const api = axios.create({
   baseURL: BASE_URL,
-  timeout: 120000, // 2 min for long analyses
+  timeout: 6000000,
 })
 
 api.interceptors.response.use(

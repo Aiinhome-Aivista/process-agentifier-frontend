@@ -57,8 +57,8 @@ function TopTarget({ item, rank }) {
 
 export default function OverviewTab({ insights, topTargets, steps }) {
   const isPdf = usePDF()
-
   const scrollRef = useRef()
+
   const scroll = (dir) => {
     scrollRef.current?.scrollBy({ left: dir * 300, behavior: 'smooth' })
   }
@@ -162,7 +162,7 @@ export default function OverviewTab({ insights, topTargets, steps }) {
       {/* Process Map section */}
       {steps?.length > 0 && (
         <div className="space-y-6">
-          <h2 className="text-base font-semibold text-white/90">Process Steps</h2>
+          <h2 className="text-base font-semibold text-white/90">Process Steps Mapping</h2>
 
           {/* Step cards with nav arrows */}
           <div className="relative">
