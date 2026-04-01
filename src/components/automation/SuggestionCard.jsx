@@ -2,30 +2,30 @@ import clsx from 'clsx'
 import { Cpu, Shield, Zap, ArrowRight } from 'lucide-react'
 
 const AGENT_TYPE_META = {
-  system_integration:   { label: 'System Integration', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
-  rpa:                  { label: 'RPA',                 color: 'bg-purple-500/10 text-purple-400 border-purple-500/20' },
-  ai_agent:             { label: 'AI Agent',            color: 'bg-brand-500/10 text-brand-400 border-brand-500/20' },
-  workflow_automation:  { label: 'Workflow',            color: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
-  communication_agent:  { label: 'Comm Agent',         color: 'bg-teal-500/10 text-teal-400 border-teal-500/20' },
+  system_integration: { label: 'System Integration', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
+  rpa: { label: 'RPA', color: 'bg-purple-500/10 text-purple-400 border-purple-500/20' },
+  ai_agent: { label: 'AI Agent', color: 'bg-brand-500/10 text-brand-400 border-brand-500/20' },
+  workflow_automation: { label: 'Workflow', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
+  communication_agent: { label: 'Comm Agent', color: 'bg-teal-500/10 text-teal-400 border-teal-500/20' },
 }
 
 const ROI_COLORS = {
-  high:   'text-brand-500',
+  high: 'text-brand-500',
   medium: 'text-amber-500',
-  low:    'text-white/40',
+  low: 'text-white/40',
 }
 
 const EFFORT_COLORS = {
-  low:    'bg-brand-500/10 text-brand-400',
+  low: 'bg-brand-500/10 text-brand-400',
   medium: 'bg-amber-500/10 text-amber-400',
-  high:   'bg-red-500/10 text-red-400',
+  high: 'bg-red-500/10 text-red-400',
 }
 
 export default function SuggestionCard({ suggestion, index }) {
   const meta = AGENT_TYPE_META[suggestion.agent_type] || AGENT_TYPE_META.workflow_automation
 
   return (
-    <div className="card p-5 hover:shadow-md transition-all duration-200 animate-slide-up relative overflow-hidden"
+    <div className="card  p-5 hover:shadow-md transition-all duration-200 animate-slide-up relative overflow-hidden"
       style={{ animationDelay: `${index * 80}ms` }}>
 
       {/* Top-right badge icon */}
@@ -35,11 +35,6 @@ export default function SuggestionCard({ suggestion, index }) {
       </div>
 
       {/* Category label */}
-      <div className="flex items-center gap-2 mb-3">
-        <span className="text-xs font-semibold text-brand-500 uppercase tracking-widest">
-          Agentic Suggestion ⚡
-        </span>
-      </div>
 
       {/* Title */}
       <h3 className="font-bold text-white/90 text-base leading-snug pr-10 mb-2">
@@ -69,7 +64,7 @@ export default function SuggestionCard({ suggestion, index }) {
       </div>
 
       {/* Metrics */}
-      <div className="grid grid-cols-2 gap-3 pt-3 border-t border-white/5">
+      <div className="flex justify-between gap-3 pt-3 border-t border-white/5">
         <Metric
           icon={<Shield size={13} className="text-brand-500" />}
           label="Accuracy"
