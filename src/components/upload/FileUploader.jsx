@@ -104,7 +104,7 @@ export default function FileUploader({ onAnalyze, loading }) {
         </div>
 
         {/* Integrated Text Input */}
-        <div
+        {/* <div
           className="mt-8 px-4 w-full relative z-20"
           onClick={(e) => e.stopPropagation()}
         >
@@ -129,7 +129,7 @@ export default function FileUploader({ onAnalyze, loading }) {
               <div className="w-1 h-1 rounded-full bg-brand-500 shadow-[0_0_8px_rgba(var(--brand-500-rgb),0.5)]" />
             </div>
           </div>
-        </div>
+        </div> */}
 
       </div>
 
