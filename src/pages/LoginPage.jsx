@@ -51,7 +51,7 @@ export default function LoginPage() {
                 {/* Title */}
                 <div className="text-center space-y-2">
                     <h2 className="text-3xl font-black text-white">
-                        Welcome to <span className="gradient-text">AgentforceX</span>
+                        Welcome to <span className="gradient-text">AgentForgeX</span>
                     </h2>
                     <p className="text-white/40 text-sm">
                         Enter your details to continue.

@@ -18,7 +18,7 @@ export default function Navbar() {
           <span className="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center group-hover:bg-brand-400 transition-colors">
             <Zap size={16} className="text-black" fill="black" />
           </span>
-          AgentforceX
+          AgentForgeX
         </Link>
         <div className="flex items-center gap-1">
           <NavLink href="#" icon={<BookOpen size={14} />}>Documentation</NavLink>
