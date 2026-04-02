@@ -52,7 +52,7 @@ export default function FileUploader({ onAnalyze, loading }) {
   return (
     <div className={clsx(
       "w-full mx-auto space-y-8 transition-all duration-700 ease-in-out",
-      tab === null ? "max-w-2xl" : "max-w-4xl"
+      tab === null ? "max-w-7xl" : "max-w-7xl"
     )}>
       {/* Initial Upload Button Toggle */}
       <div className="flex justify-center">
@@ -80,23 +80,23 @@ export default function FileUploader({ onAnalyze, loading }) {
         className={clsx(
           "flex transition-all duration-700 ease-in-out overflow-hidden shadow-2xl",
           tab === null
-            ? "w-full border-2 border-dashed border-white/10 bg-white/5 rounded-2xl min-h-[250px] cursor-pointer hover:border-brand-500/50 hover:bg-white/[0.08]"
-            : "relative bg-[#0d0d0d]/40 backdrop-blur-3xl border border-white/10 rounded-3xl min-h-[420px]"
+            ? "w-full border-2 border-dashed border-white/20 bg-white/10 rounded-2xl min-h-[250px]  cursor-pointer hover:border-brand-500/50 hover:bg-white/[0.08]"
+            : "relative bg-[#0d0d0d]/40 backdrop-blur-3xl border border-white/20 rounded-3xl min-h-[350px] shadow-[0_0_40px_-15px_rgba(255,255,255,0.05)]"
         )}
       >
         {tab === null ? (
           <div
             onClick={() => setTab('docs')}
-            className="w-full p-12 text-center flex flex-col items-center gap-4 group"
+            className="w-full p-16 text-center flex flex-col items-center gap-4 group"
           >
             <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 shadow-lg flex items-center justify-center">
               <Upload size={22} className="text-white/20 group-hover:text-brand-500 transition-colors" />
             </div>
             <div>
               <p className="font-bold text-white/90 text-lg">
-                Upload multiple files <span className="text-white/20 font-normal">or</span> add user input
+                Upload multiple files <span className="text-brand-500 font-normal"> or </span> add user input
               </p>
-              <p className="text-sm text-white/40 mt-1 max-w-md mx-auto leading-relaxed">
+              <p className="text-sm text-white/40 mt-1 max-w-2xl mx-auto leading-relaxed">
                 Connect your process documentation or ERP exports to initiate deeper agentic analysis.
               </p>
             </div>

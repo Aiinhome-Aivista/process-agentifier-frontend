@@ -45,7 +45,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-16 space-y-12">
+    <div className="max-w-4xl mx-auto px-6 py-16 space-y-12">
       {/* Hero */}
       <div className="text-center space-y-4">
         <h1 className="text-5xl font-black text-white tracking-tight leading-tight">
@@ -68,7 +68,7 @@ export default function HomePage() {
       )}
 
       {/* Feature cards */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-5xl mx-auto">
         {FEATURES.map(({ icon: Icon, title, desc, color }) => (
           <div key={title} className="card p-5 space-y-3 hover:bg-white/10 transition-all group">
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color}`}>

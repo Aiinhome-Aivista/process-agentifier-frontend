@@ -5,7 +5,7 @@ export default function UploadSidebar({ tab, setTab, setFiles, setUserInput }) {
   return (
     <div className="relative w-[300px] bg-white/[0.01] border-r border-white/10 p-5 space-y-2 animate-in fade-in slide-in-from-left-8 duration-700 delay-100 fill-mode-both">
       <div className="px-3 mb-6">
-        <h3 className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Data Payloads</h3>
+        <h3 className="text-[10px] font-black text-white/50 uppercase tracking-[0.2em]">Data Payloads</h3>
       </div>
       <div className="space-y-1">
         {TABS.map((t) => (
@@ -17,8 +17,8 @@ export default function UploadSidebar({ tab, setTab, setFiles, setUserInput }) {
             className={clsx(
               'w-full flex items-center gap-4 px-4 py-4 rounded-xl text-left transition-all duration-300 group relative',
               tab === t.id
-                ? 'text-brand-500 bg-white/[0.03]'
-                : 'text-white/40 hover:bg-white/[0.02] hover:text-white/80'
+                ? 'text-brand-500 bg-white/[0.05] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]'
+                : 'text-white/60 hover:bg-white/[0.03] hover:text-white/90'
             )}
           >
             {tab === t.id && (
@@ -35,7 +35,10 @@ export default function UploadSidebar({ tab, setTab, setFiles, setUserInput }) {
                 'font-bold text-sm tracking-tight',
                 tab === t.id ? 'text-white' : ''
               )}>{t.label}</p>
-              <p className="text-[10px] opacity-40 font-medium truncate">{t.desc}</p>
+              <p className={clsx(
+                "text-[10px] font-medium truncate transition-opacity",
+                tab === t.id ? "text-white/80" : "text-white/40"
+              )}>{t.desc}</p>
             </div>
           </button>
         ))}

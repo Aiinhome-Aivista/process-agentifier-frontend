@@ -6,24 +6,26 @@ export default function UploadDropzone({ tab, userInput, setUserInput, onDrop, o
   return (
     <div className="relative flex-1 flex flex-col">
       {tab === 'user' ? (
-        <div className="flex-1 flex flex-col space-y-4 animate-in fade-in slide-in-from-right-8 duration-700 ease-out fill-mode-both">
-          <textarea
-            value={userInput}
-            onChange={(e) => setUserInput(e.target.value)}
-            placeholder="Describe your process in detail here."
-            className="w-full flex-1 bg-white/[0.02] border border-white/5 rounded-2xl p-6 text-sm text-white placeholder:text-white/10 outline-none focus:border-brand-500/30 focus:bg-white/[0.04] transition-all duration-300 font-medium resize-none leading-relaxed"
-          />
+        <div className="flex-1 flex flex-col items-center justify-center space-y-4 animate-in fade-in slide-in-from-right-8 duration-700 ease-out fill-mode-both">
+          <div className="w-full max-w-xl h-[220px] bg-white/[0.05] border border-white/20 rounded-2xl overflow-hidden focus-within:border-brand-500/50 focus-within:bg-white/[0.08] transition-all duration-300">
+            <textarea
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+              placeholder="Describe your process in detail here."
+              className="w-full h-full bg-transparent p-6 text-sm text-white placeholder:text-brand-500/60 outline-none font-medium resize-none leading-relaxed scrollbar-custom"
+            />
+          </div>
         </div>
       ) : (
-        <div className="flex-1 flex flex-col space-y-6 animate-in fade-in slide-in-from-right-8 duration-700 ease-out fill-mode-both">
+        <div className="flex-1 flex flex-col items-center justify-center space-y-6 animate-in fade-in slide-in-from-right-8 duration-700 ease-out fill-mode-both">
           <div
             onDrop={onDrop} onDragOver={onDragOver} onDragLeave={onDragLeave}
             onClick={() => inputRef.current?.click()}
-            className="flex-1 relative group cursor-pointer transition-all duration-500 flex flex-col"
+            className="w-full max-w-xl h-[220px] relative group cursor-pointer transition-all duration-500 flex flex-col"
           >
             <div className={clsx(
               'relative flex-1 border-2 border-dashed rounded-[2rem] flex flex-col items-center justify-center text-center transition-all duration-500',
-              dragging ? 'border-brand-500 bg-brand-500/[0.08]' : 'border-white/5 bg-white/[0.02] hover:bg-white/[0.04]'
+              dragging ? 'border-brand-500 bg-brand-500/[0.08]' : 'border-white/20 bg-white/[0.05] hover:bg-white/[0.08]'
             )}>
               <input ref={inputRef} type="file" multiple accept={tab === 'erp' ? '.csv,.xlsx,.xls' : '.pdf,.docx,.doc,.txt'} className="hidden" onChange={e => addFiles(e.target.files)} />
               <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 shadow-lg flex items-center justify-center mb-4 transition-transform group-hover:scale-110">

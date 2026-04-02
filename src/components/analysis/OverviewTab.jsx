@@ -200,7 +200,7 @@ export default function OverviewTab({ insights, topTargets, steps, suggestions }
             )}
           >
             <div className="space-y-6">
-              <h2 className="text-base font-semibold text-white/90">Process Steps Mapping</h2>
+              <h2 className="text-base font-semibold text-white/90">Process  Mapping</h2>
 
               <div className="relative group/scroll">
                 {/* Navigation Buttons Overlay */}
@@ -269,7 +269,7 @@ export default function OverviewTab({ insights, topTargets, steps, suggestions }
                       onClick={handleBack}
                       className="hover:text-white/60 cursor-pointer transition-colors"
                     >
-                      Process Steps Mapping
+                      Process  Mapping
                     </span>
                     <ChevronRight size={11} className="text-white/20" />
                     <span
