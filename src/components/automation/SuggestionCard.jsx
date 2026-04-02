@@ -97,9 +97,13 @@ function Metric({ icon, label, value, bold, valueClass }) {
   return (
     <div className="flex items-center gap-1.5">
       {icon}
-      <div>
-        <p className="text-xs text-gray-400">{label}</p>
-        <p className={clsx('text-sm font-semibold', valueClass || 'text-gray-800', bold && 'text-brand-500')}>
+      <div className="min-w-0">
+        <p className="text-[10px] uppercase font-semibold text-white/50 tracking-tight leading-none mb-1">{label}</p>
+        <p className={clsx(
+          'text-sm font-semibold tabular-nums',
+          valueClass || 'text-white/65',
+          bold && 'text-brand-400'
+        )}>
           {value}
         </p>
       </div>
