@@ -23,9 +23,14 @@ api.interceptors.response.use(
   }
 )
 
-export const analyzeFiles = (files) => {
+export const analyzeFiles = (files, userInput = '') => {
   const form = new FormData()
-  files.forEach(f => form.append('files', f))
+  if (files && files.length > 0) {
+    files.forEach(f => form.append('files', f))
+  }
+  if (userInput) {
+    form.append('user_input', userInput)
+  }
   return api.post('/analyze', form, {
     headers: { 'Content-Type': 'multipart/form-data' },
   })
