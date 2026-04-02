@@ -30,11 +30,11 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const handleAnalyze = async (files) => {
+  const handleAnalyze = async (files, userText = '') => {
     setError('')
     setLoading(true)
     try {
-      const result = await analyzeFiles(files)
+      const result = await analyzeFiles(files, userText)
       // Navigate to analysis page with result in state
       navigate(`/analysis/${result.process.id}`, { state: { result } })
     } catch (err) {
