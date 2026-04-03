@@ -1,10 +1,11 @@
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
-import Applayout from '../components/layout/Applayout'
-import HomePage from '../pages/HomePage'
-import AnalysisPage from '../pages/AnalysisPage'
-import HistoryPage from '../pages/HistoryPage'
-import LoginPage from '../pages/LoginPage'
+import { useAuth } from './context/AuthContext'
+import Applayout from './components/layout/Applayout'
+import HomePage from './pages/HomePage'
+import AnalysisPage from './pages/AnalysisPage'
+import HistoryPage from './pages/HistoryPage'
+import LoginPage from './pages/LoginPage'
+import SuggestionDetailsPage from './pages/SuggestionDetailsPage'
 
 // PrivateRoute: Redirect to login if not authenticated
 const PrivateRoute = () => {
@@ -29,6 +30,7 @@ export default function AppRoutes() {
       {/* Private Routes (Wrapped in PrivateRoute and AppLayout) */}
       <Route element={<PrivateRoute />}>
         <Route element={<Applayout />}>
+          <Route path="/suggestion/:id" element={<SuggestionDetailsPage />} />
           <Route path="/home" element={<HomePage />} />
           <Route path="/analysis/:id" element={<AnalysisPage />} />
           <Route path="/history" element={<HistoryPage />} />

@@ -21,18 +21,47 @@ const EFFORT_COLORS = {
   high: 'bg-red-500/10 text-red-400',
 }
 
-export default function SuggestionCard({ suggestion, index }) {
+export default function SuggestionCard({ suggestion, index, hideChip }) {
   const meta = AGENT_TYPE_META[suggestion.agent_type] || AGENT_TYPE_META.workflow_automation
+
+  const handleOpenStats = (e) => {
+    e.stopPropagation()
+    const id = suggestion.id || btoa(suggestion.title).substring(0, 10)
+    // Extract the analysis ID from the current URL (e.g. /analysis/abc123)
+    const pathParts = window.location.pathname.split('/')
+    const analysisIdx = pathParts.indexOf('analysis')
+    const analysisId = analysisIdx !== -1 ? pathParts[analysisIdx + 1] : null
+
+    const details = {
+      ...suggestion,
+      analysisId,
+      benefits: suggestion.benefits || [
+        "Increases overall execution speed and operational efficiency",
+        "Reduces manual effort significantly and frees up human resources",
+        "Improves data accuracy, consistency and mitigates human errors",
+        "Streamlines workflow handling with better compliance"
+      ]
+    }
+    localStorage.setItem(`suggestion_${id}`, JSON.stringify(details))
+    const baseUrl = import.meta.env.BASE_URL || '/'
+    window.open(`${baseUrl}suggestion/${id}`.replace(/\/\//g, '/'), '_blank')
+  }
 
   return (
     <div className="card  p-5 hover:shadow-md transition-all duration-200 animate-slide-up relative overflow-hidden"
       style={{ animationDelay: `${index * 80}ms` }}>
 
       {/* Top-right badge icon */}
-      <div className="absolute top-4 right-4 w-9 h-9 rounded-xl bg-brand-500
-          flex items-center justify-center shadow-lg shadow-brand-500/20">
-        <Cpu size={16} className="text-black" />
-      </div>
+      {!hideChip && (
+        <div 
+          onClick={handleOpenStats}
+          className="absolute top-4 right-4 w-9 h-9 rounded-xl bg-brand-500
+            flex items-center justify-center shadow-lg shadow-brand-500/20 cursor-pointer hover:bg-brand-400 hover:scale-110 transition-all z-10"
+          title="View Details"
+        >
+          <Cpu size={16} className="text-black" />
+        </div>
+      )}
 
       {/* Category label */}
 
@@ -43,12 +72,6 @@ export default function SuggestionCard({ suggestion, index }) {
       <p className="text-sm text-white/60 leading-relaxed mb-4">
         {suggestion.description}
       </p>
-
-      {/* Implementation hint */}
-      {/* <div className="bg-gray-50 rounded-xl px-3 py-2.5 mb-4 text-xs text-gray-600 flex items-start gap-2">
-        <ArrowRight size={12} className="mt-0.5 shrink-0 text-brand-400" />
-        <span>{suggestion.implementation}</span>
-      </div> */}
 
       {/* Tags row */}
       <div className="flex flex-wrap items-center gap-2 mb-4">

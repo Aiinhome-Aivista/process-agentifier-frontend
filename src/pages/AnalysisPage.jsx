@@ -21,9 +21,19 @@ export default function AnalysisPage() {
     if (!result && id) {
       setLoading(true)
       getProcess(id)
-        .then(data => setResult(data))
+        .then(data => {
+          setResult(data)
+          localStorage.setItem(`analysis_${id}`, JSON.stringify(data))
+        })
         .catch(err => setError(err.message))
         .finally(() => setLoading(false))
+    } else if (result && id) {
+      localStorage.setItem(`analysis_${id}`, JSON.stringify(result))
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (id) localStorage.removeItem(`analysis_${id}`)
     }
   }, [id, result])
 
