@@ -34,24 +34,22 @@ export default function SuggestionDetailsPage() {
   const [processData, setProcessData] = useState(null)
 
   useEffect(() => {
-    const data = localStorage.getItem(`suggestion_${id}`)
+    const data = sessionStorage.getItem(`suggestion_${id}`)
     if (data) {
       const parsed = JSON.parse(data)
       setSuggestion(parsed)
 
-      // Read the cached analysis data from localStorage
+      // Read the cached analysis data from sessionStorage
       if (parsed.analysisId) {
-        const analysisData = localStorage.getItem(`analysis_${parsed.analysisId}`)
+        const analysisData = sessionStorage.getItem(`analysis_${parsed.analysisId}`)
         if (analysisData) {
           setProcessData(JSON.parse(analysisData))
         }
       }
     }
 
-    // Cleanup on unmount — remove suggestion data to prevent stale loads
-    return () => {
-      localStorage.removeItem(`suggestion_${id}`)
-    }
+    // No manual cleanup needed for sessionStorage as it's tab-specific
+    return () => {}
   }, [id])
 
   if (!suggestion) {

@@ -23,18 +23,17 @@ export default function AnalysisPage() {
       getProcess(id)
         .then(data => {
           setResult(data)
-          localStorage.setItem(`analysis_${id}`, JSON.stringify(data))
+          sessionStorage.setItem(`analysis_${id}`, JSON.stringify(data))
         })
         .catch(err => setError(err.message))
         .finally(() => setLoading(false))
     } else if (result && id) {
-      localStorage.setItem(`analysis_${id}`, JSON.stringify(result))
+      sessionStorage.setItem(`analysis_${id}`, JSON.stringify(result))
     }
 
-    // Cleanup on unmount
-    return () => {
-      if (id) localStorage.removeItem(`analysis_${id}`)
-    }
+    // No manual cleanup needed for sessionStorage as it's tab-specific 
+    // and persists through page refreshes.
+    return () => {}
   }, [id, result])
 
   if (loading) {

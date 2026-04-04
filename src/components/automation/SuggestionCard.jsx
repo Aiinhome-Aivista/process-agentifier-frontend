@@ -42,7 +42,7 @@ export default function SuggestionCard({ suggestion, index, hideChip }) {
         "Streamlines workflow handling with better compliance"
       ]
     }
-    localStorage.setItem(`suggestion_${id}`, JSON.stringify(details))
+    sessionStorage.setItem(`suggestion_${id}`, JSON.stringify(details))
     const baseUrl = import.meta.env.BASE_URL || '/'
     window.open(`${baseUrl}suggestion/${id}`.replace(/\/\//g, '/'), '_blank')
   }
