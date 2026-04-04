@@ -53,7 +53,7 @@ export default function SuggestionCard({ suggestion, index, hideChip }) {
 
       {/* Top-right badge icon */}
       {!hideChip && (
-        <div 
+        <div
           onClick={handleOpenStats}
           className="absolute top-4 right-4 w-9 h-9 rounded-xl bg-brand-500
             flex items-center justify-center shadow-lg shadow-brand-500/20 cursor-pointer hover:bg-brand-400 hover:scale-110 transition-all z-10"
@@ -100,6 +100,29 @@ export default function SuggestionCard({ suggestion, index, hideChip }) {
           value={suggestion.roi_impact}
           valueClass={ROI_COLORS[suggestion.roi_impact]}
         />
+      </div>
+
+      {/* Efficiency Potential */}
+      <div className="flex items-center justify-between gap-3 pt-3 mt-1 border-t border-white/5">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center justify-center">
+            <ArrowRight size={12} className="text-cyan-400" />
+          </div>
+          <div>
+            <p className="text-[10px] uppercase font-semibold text-white/50 tracking-tight leading-none mb-0.5">Efficiency Potential</p>
+            <p className="text-sm font-bold text-cyan-400 tabular-nums">
+              {suggestion.efficiency_potential || '65'}%
+            </p>
+          </div>
+        </div>
+        <div className="text-right">
+          <p className="text-xs text-white/40 leading-snug">
+            ~{suggestion.time_savings || '40'}% time saved
+          </p>
+          <p className="text-xs text-white/40 leading-snug">
+            ~{suggestion.cost_savings || '35'}% cost reduction
+          </p>
+        </div>
       </div>
 
       {/* Technologies */}
