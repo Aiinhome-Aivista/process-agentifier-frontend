@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Cpu, Shield, Zap, ArrowRight,Lightbulb } from 'lucide-react'
+import { Cpu, Shield, Zap, ArrowRight, Lightbulb } from 'lucide-react'
 
 const AGENT_TYPE_META = {
   system_integration: { label: 'System Integration', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
@@ -111,17 +111,18 @@ export default function SuggestionCard({ suggestion, index, hideChip }) {
           <div>
             <p className="text-[10px] uppercase font-semibold text-white/50 tracking-tight leading-none mb-0.5">Efficiency Potential</p>
             <p className="text-sm font-bold text-cyan-400 tabular-nums">
-              {suggestion.efficiency_potential || '65'}%
+              {suggestion.metrics?.efficiency_potential || '65'}%
             </p>
           </div>
         </div>
         <div className="text-right">
-          <p className="text-xs text-white/40 leading-snug">
-            ~{suggestion.time_savings || '40'}% time saved
-          </p>
-          <p className="text-xs text-white/40 leading-snug">
-            ~{suggestion.cost_savings || '35'}% cost reduction
-          </p>
+          {suggestion.metrics?.outputs?.length > 0 &&
+            suggestion.metrics.outputs.slice(0, 2).map((output, idx) => (
+              <p key={idx} className="text-xs text-white/40 leading-tight truncate">
+                ~ {output}
+              </p>
+            ))
+          }
         </div>
       </div>
 
