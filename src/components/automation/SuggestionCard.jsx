@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Cpu, Shield, Zap, ArrowRight } from 'lucide-react'
+import { Cpu, Shield, Zap, ArrowRight,Lightbulb } from 'lucide-react'
 
 const AGENT_TYPE_META = {
   system_integration: { label: 'System Integration', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
@@ -59,7 +59,7 @@ export default function SuggestionCard({ suggestion, index, hideChip }) {
             flex items-center justify-center shadow-lg shadow-brand-500/20 cursor-pointer hover:bg-brand-400 hover:scale-110 transition-all z-10"
           title="View Details"
         >
-          <Cpu size={16} className="text-black" />
+          <Lightbulb size={16} className="text-black" />
         </div>
       )}
 

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FileSearch, BarChart3, Cpu } from 'lucide-react'
+import { FileSearch, Cpu, Lightbulb, Workflow, Layers } from 'lucide-react'
 import FileUploader from '../components/upload/FileUploader'
 import { analyzeFiles } from '../services/api'
 
@@ -12,15 +12,21 @@ const FEATURES = [
     color: 'text-brand-500 bg-brand-500/10',
   },
   {
-    icon: BarChart3,
-    title: 'Visual Insights',
-    desc: 'Interactive process maps and metrics',
+    icon: Lightbulb,
+    title: 'Agentic Suggestions',
+    desc: 'AI-driven automation opportunities',
+    color: 'text-yellow-500 bg-yellow-500/10',
+  },
+  {
+    icon: Workflow,
+    title: 'Agentic Operating Model',
+    desc: 'Future State Human + AI workflow',
     color: 'text-blue-500 bg-blue-500/10',
   },
   {
-    icon: Cpu,
-    title: 'Agentic Suggestions',
-    desc: 'AI-driven automation opportunities',
+    icon: Layers,
+    title: 'Deployment Architecture',
+    desc: 'Deployment modules for execution',
     color: 'text-purple-500 bg-purple-500/10',
   },
 ]
