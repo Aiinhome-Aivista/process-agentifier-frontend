@@ -1,20 +1,51 @@
 import clsx from 'clsx'
-import { Upload } from 'lucide-react'
+import { Upload, Search } from 'lucide-react'
 import FileTag from './FileTag'
 
 export default function UploadDropzone({ tab, userInput, setUserInput, onDrop, onDragOver, onDragLeave, inputRef, dragging, addFiles }) {
   return (
     <div className="relative flex-1 flex flex-col">
-      {tab === 'user' ? (
-        <div key="user" className="flex-1 flex flex-col items-center justify-center space-y-4 animate-in fade-in slide-in-from-right-8 duration-700 ease-out fill-mode-both">
-          <div className="w-full max-w-xl h-[220px] bg-white/[0.05] border border-white/20 rounded-2xl overflow-hidden focus-within:border-brand-500/50 focus-within:bg-white/[0.08] transition-all duration-300">
-            <textarea
-              value={userInput}
-              onChange={(e) => setUserInput(e.target.value)}
-              placeholder="Describe your process in detail here."
-              className="w-full h-full bg-transparent p-6 text-sm text-white placeholder:text-brand-500/60 outline-none font-medium resize-none leading-relaxed scrollbar-custom"
-            />
-          </div>
+      {tab === 'user' || tab === 'websearch' ? (
+        <div key={tab} className="flex-1 flex flex-col items-center justify-center space-y-4 animate-in fade-in slide-in-from-right-8 duration-700 ease-out fill-mode-both">
+          {tab === 'user' ? (
+            <div className="w-full max-w-xl h-[220px] bg-white/[0.05] border border-white/20 rounded-2xl overflow-hidden focus-within:border-brand-500/50 focus-within:bg-white/[0.08] transition-all duration-300">
+              <textarea
+                value={userInput}
+                onChange={(e) => setUserInput(e.target.value)}
+                placeholder="Describe your process in detail here."
+                className="w-full h-full bg-transparent p-6 text-sm text-white placeholder:text-brand-500/60 outline-none font-medium resize-none leading-relaxed scrollbar-custom"
+              />
+            </div>
+          ) : (
+            <div className="w-full max-w-2xl space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-brand-500/10 border border-brand-500/30 flex items-center justify-center">
+                  <Search size={24} className="text-brand-500" />
+                </div>
+                <div>
+                  <p className="font-bold text-white text-lg">Search the Web</p>
+                  <p className="text-sm text-white/40">Find process information and best practices</p>
+                </div>
+              </div>
+              <div className="flex gap-3 w-full max-w-2xl">
+                <input
+                  type="text"
+                  value={userInput}
+                  onChange={(e) => setUserInput(e.target.value)}
+                  placeholder="Enter your search query (e.g., SAP procurement process, ERP order management...)"
+                  className="flex-1 px-6 py-4 bg-white/[0.05] border border-white/20 rounded-2xl text-white placeholder:text-white/40 outline-none font-medium focus:border-brand-500/50 focus:bg-white/[0.08] transition-all duration-300"
+                />
+                <button
+                  onClick={() => userInput.trim() && window.open(`https://www.google.com/search?q=${encodeURIComponent(userInput)}`, '_blank')}
+                  disabled={!userInput.trim()}
+                  className="px-6 py-4 bg-brand-500/10 hover:bg-brand-500/20 disabled:opacity-50 disabled:cursor-not-allowed border border-brand-500/30 rounded-2xl transition-all duration-300 flex items-center gap-2 font-bold text-brand-400 hover:text-brand-300 whitespace-nowrap"
+                >
+                  <Search size={18} />
+                  <span>Search</span>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <div key="upload" className="flex-1 flex flex-col items-center justify-center space-y-6 animate-in fade-in slide-in-from-right-8 duration-700 ease-out fill-mode-both">

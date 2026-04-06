@@ -1,7 +1,7 @@
-import { X } from 'lucide-react'
+import { X, Search } from 'lucide-react'
 import { LABELS, getExt } from './constants'
 
-export default function FileList({ files, removeFile, userInput = '', removeText }) {
+export default function FileList({ files, removeFile, tab, userInput = '', removeText }) {
   if (files.length === 0 && !userInput.trim()) return null;
   return (
     <div className="space-y-2 animate-in fade-in slide-in-from-top-4 duration-500">
@@ -22,7 +22,13 @@ export default function FileList({ files, removeFile, userInput = '', removeText
       {userInput.trim() && (
         <div className="flex items-center justify-between px-5 py-3 bg-white/[0.02] rounded-2xl border border-white/5 group hover:border-white/10 transition-all">
           <div className="flex items-center gap-4 w-full">
-            <span className="text-[10px] font-black px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-md">TEXT</span>
+            <span className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
+              tab === 'websearch'
+                ? 'bg-brand-500/20 text-brand-400'
+                : 'bg-blue-500/20 text-blue-400'
+            }`}>
+              {tab === 'websearch' ? 'SEARCH' : 'TEXT'}
+            </span>
             <span className="text-sm font-bold text-white/80 truncate max-w-[80%]">{userInput}</span>
           </div>
           <button 

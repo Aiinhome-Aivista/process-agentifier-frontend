@@ -12,7 +12,7 @@ export default function FileUploader({ onAnalyze, loading }) {
   const [files, setFiles] = useState([])
   const [dragging, setDragging] = useState(false)
   const [error, setError] = useState('')
-  const [tab, setTab] = useState(null) // null | 'docs' | 'erp' | 'user'
+  const [tab, setTab] = useState(null) // null | 'docs' | 'erp' | 'user' | 'websearch'
   const [userInput, setUserInput] = useState('')
   const inputRef = useRef()
 
@@ -24,9 +24,10 @@ export default function FileUploader({ onAnalyze, loading }) {
       if (!LABELS[ext]) return false;
       if (tab === 'erp') return ['csv', 'xlsx', 'xls'].includes(ext);
       if (tab === 'docs') return ['pdf', 'docx', 'doc', 'txt'].includes(ext);
+      if (tab === 'websearch') return false; // websearch doesn't accept files
       return false;
     })
-    if (valid.length !== arr.length) setError('Some files were skipped (unsupported type).')
+    if (valid.length !== arr.length && tab !== 'websearch') setError('Some files were skipped (unsupported type).')
     setFiles(prev => {
       const names = new Set(prev.map(f => f.name))
       return [...prev, ...valid.filter(f => !names.has(f.name))].slice(0, 20)
@@ -42,8 +43,8 @@ export default function FileUploader({ onAnalyze, loading }) {
   const removeFile = (name) => setFiles(f => f.filter(x => x.name !== name))
 
   const handleSubmit = () => {
-    if (files.length === 0) {
-      setError('Please upload at least one file.');
+    if (files.length === 0 && (!userInput || userInput.trim() === '')) {
+      setError('Please provide input for the selected mode.');
       return;
     }
     onAnalyze(files, userInput)
@@ -72,7 +73,7 @@ export default function FileUploader({ onAnalyze, loading }) {
           )}
         >
           <Plus size={16} />
-          <span>Upload</span>
+          <span>Upload or Search</span>
         </button>
       </div>
 
@@ -94,10 +95,10 @@ export default function FileUploader({ onAnalyze, loading }) {
             </div>
             <div>
               <p className="font-bold text-white/90 text-lg">
-                Upload multiple files <span className="text-brand-500 font-normal"> or </span> add user input
+                Upload multiple files <span className="text-brand-500 font-normal"> or </span> search the web
               </p>
               <p className="text-sm text-white/40 mt-1 max-w-2xl mx-auto leading-relaxed">
-                Connect your process documentation or ERP exports to initiate deeper agentic analysis.
+                Connect your process documentation, ERP exports, or search for best practices to initiate deeper agentic analysis.
               </p>
             </div>
             <div className="flex gap-3 text-xs text-white/20">
@@ -136,14 +137,14 @@ export default function FileUploader({ onAnalyze, loading }) {
         )}
       </div>
 
-      <FileList files={files} removeFile={removeFile} userInput={userInput} removeText={() => setUserInput('')} />
+      <FileList files={files} removeFile={removeFile} tab={tab} userInput={userInput} removeText={() => setUserInput('')} />
 
       <button
         onClick={handleSubmit}
-        disabled={loading || files.length === 0}
+        disabled={loading || (files.length === 0 && (!userInput || userInput.trim() === ''))}
         className={clsx(
           "w-full relative group overflow-hidden py-3 rounded-xl transition-all duration-500 disabled:cursor-not-allowed",
-          (loading || files.length === 0) ? "bg-brand-500/10" : "bg-brand-500"
+          (loading || (files.length === 0 && (!userInput || userInput.trim() === ''))) ? "bg-brand-500/10" : "bg-brand-500"
         )}
       >
         <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -154,11 +155,11 @@ export default function FileUploader({ onAnalyze, loading }) {
             <>
               <Upload size={18} className={clsx(
                 "transition-transform",
-                (files.length === 0) ? "text-brand-500/60" : "text-black group-hover:-translate-y-1"
+                (files.length === 0 && (!userInput || userInput.trim() === '')) ? "text-brand-500/60" : "text-black group-hover:-translate-y-1"
               )} />
               <span className={clsx(
                 "font-bold",
-                (files.length === 0) ? "text-brand-500/60" : "text-black"
+                (files.length === 0 && (!userInput || userInput.trim() === '')) ? "text-brand-500/60" : "text-black"
               )}>Analyze Process</span>
             </>
           )}
