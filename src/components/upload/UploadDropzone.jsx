@@ -36,7 +36,6 @@ export default function UploadDropzone({ tab, userInput, setUserInput, onDrop, o
                   className="flex-1 px-6 py-4 bg-white/[0.05] border border-white/20 rounded-2xl text-white placeholder:text-white/40 outline-none font-medium focus:border-brand-500/50 focus:bg-white/[0.08] transition-all duration-300"
                 />
                 <button
-                  onClick={() => userInput.trim() && window.open(`https://www.google.com/search?q=${encodeURIComponent(userInput)}`, '_blank')}
                   disabled={!userInput.trim()}
                   className="px-6 py-4 bg-brand-500/10 hover:bg-brand-500/20 disabled:opacity-50 disabled:cursor-not-allowed border border-brand-500/30 rounded-2xl transition-all duration-300 flex items-center gap-2 font-bold text-brand-400 hover:text-brand-300 whitespace-nowrap"
                 >
