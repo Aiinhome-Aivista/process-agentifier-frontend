@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FileSearch, Cpu, Lightbulb, Workflow, Layers } from 'lucide-react'
 import FileUploader from '../components/upload/FileUploader'
-import AgenticWorkflow from '../components/upload/AgenticWorkflow'
 import { analyzeFiles } from '../services/api'
 
 const FEATURES = [
@@ -88,13 +87,6 @@ export default function HomePage() {
           </div>
         ))}
       </div>
-
-      {/* Example Agentic Workflow */}
-      <div className="w-full max-w-4xl mx-auto pt-8">
-        <h2 className="text-2xl font-bold text-white text-center mb-6">Inventory Check Workflow</h2>
-        <AgenticWorkflow />
-      </div>
-      
     </div>
   )
 }
