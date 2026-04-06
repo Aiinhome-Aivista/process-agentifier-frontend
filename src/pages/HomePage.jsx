@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FileSearch, BarChart3, Cpu } from 'lucide-react'
+import { FileSearch, Cpu, Lightbulb, Workflow, Layers } from 'lucide-react'
 import FileUploader from '../components/upload/FileUploader'
 import { analyzeFiles } from '../services/api'
 
@@ -12,15 +12,21 @@ const FEATURES = [
     color: 'text-brand-500 bg-brand-500/10',
   },
   {
-    icon: BarChart3,
-    title: 'Visual Insights',
-    desc: 'Interactive process maps and metrics',
+    icon: Lightbulb,
+    title: 'Agentic Suggestions',
+    desc: 'AI-driven automation opportunities',
+    color: 'text-yellow-500 bg-yellow-500/10',
+  },
+  {
+    icon: Workflow,
+    title: 'Agentic Operating Model',
+    desc: 'Future State Human + AI workflow',
     color: 'text-blue-500 bg-blue-500/10',
   },
   {
-    icon: Cpu,
-    title: 'Agentic Suggestions',
-    desc: 'AI-driven automation opportunities',
+    icon: Layers,
+    title: 'Deployment Architecture',
+    desc: 'Deployment modules for execution',
     color: 'text-purple-500 bg-purple-500/10',
   },
 ]
@@ -68,7 +74,7 @@ export default function HomePage() {
       )}
 
       {/* Feature cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-5xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
         {FEATURES.map(({ icon: Icon, title, desc, color }) => (
           <div key={title} className="card p-5 space-y-3 hover:bg-white/10 transition-all group">
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color}`}>

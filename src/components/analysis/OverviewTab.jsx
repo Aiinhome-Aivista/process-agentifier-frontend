@@ -301,11 +301,11 @@ export default function OverviewTab({ insights, topTargets, steps, suggestions }
       )}
 
       {/* ── ALWAYS VISIBLE: Automation Potential Analysis ── */}
-      {steps?.length > 0 && (
+      {/* {steps?.length > 0 && (
         <div className="mt-4">
           <AutomationChart steps={steps} />
         </div>
-      )}
+      )} */}
       {/* Overview row: insights + top targets */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Key Insights — 2/3 width */}
