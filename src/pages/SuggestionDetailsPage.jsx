@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { Cpu, CheckCircle2, ChevronDown } from 'lucide-react'
 import StepCard from '../components/analysis/StepCard'
 import SuggestionCard from '../components/automation/SuggestionCard'
+import AgenticWorkflow from '../components/automation/AgenticWorkflow'
 
 function AnimatedScore({ target }) {
   const [display, setDisplay] = useState(0)
@@ -145,6 +146,8 @@ export default function SuggestionDetailsPage() {
         >
           <SuggestionCard suggestion={suggestion} index={0} hideChip />
         </div>
+        {/* Agentic Workflow Card */}
+        <AgenticWorkflow/>
 
         {/* Architecture & Deployment Card */}
         <div
