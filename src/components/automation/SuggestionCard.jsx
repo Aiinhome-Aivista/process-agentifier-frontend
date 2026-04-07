@@ -59,7 +59,7 @@ export default function SuggestionCard({ suggestion, index, hideChip }) {
             flex items-center justify-center shadow-lg shadow-brand-500/20 cursor-pointer hover:bg-brand-400 hover:scale-110 transition-all z-10"
           title="View Details"
         >
-          <Lightbulb size={16} className="text-black" />
+          <Lightbulb size={18} className="text-black" />
         </div>
       )}
 

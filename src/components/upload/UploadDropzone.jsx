@@ -19,8 +19,8 @@ export default function UploadDropzone({ tab, userInput, setUserInput, onDrop, o
           ) : (
             <div className="w-full max-w-2xl space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-brand-500/10 border border-brand-500/30 flex items-center justify-center">
-                  <Search size={24} className="text-brand-500" />
+                <div className="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/30 flex items-center justify-center">
+                  <Search size={23} className="text-brand-500" />
                 </div>
                 <div>
                   <p className="font-bold text-white text-lg">Search the Web</p>
@@ -32,14 +32,14 @@ export default function UploadDropzone({ tab, userInput, setUserInput, onDrop, o
                   type="text"
                   value={userInput}
                   onChange={(e) => setUserInput(e.target.value)}
-                  placeholder="Enter your search query (e.g., SAP procurement process, ERP order management...)"
-                  className="flex-1 px-6 py-4 bg-white/[0.05] border border-white/20 rounded-2xl text-white placeholder:text-white/40 outline-none font-medium focus:border-brand-500/50 focus:bg-white/[0.08] transition-all duration-300"
+                  placeholder="e.g. SAP procurement process, ERP order management..."
+                  className="flex-1 px-3 py-3 bg-white/[0.05] border border-white/20 rounded-xl text-white placeholder:text-white/40 outline-none font-medium focus:border-brand-500/50 focus:bg-white/[0.08] transition-all duration-300 placeholder:text-[13px]"
                 />
                 <button
                   disabled={!userInput.trim()}
-                  className="px-6 py-4 bg-brand-500/10 hover:bg-brand-500/20 disabled:opacity-50 disabled:cursor-not-allowed border border-brand-500/30 rounded-2xl transition-all duration-300 flex items-center gap-2 font-bold text-brand-400 hover:text-brand-300 whitespace-nowrap"
+                  className="px-3 py-3 bg-brand-500/10 hover:bg-brand-500/20 disabled:opacity-50 disabled:cursor-not-allowed border border-brand-500/30 rounded-xl transition-all duration-300 flex items-center gap-2 font-bold text-brand-400 hover:text-brand-300 whitespace-nowrap -mr-5"
                 >
-                  <Search size={18} />
+                  <Search size={17} />
                   <span>Search</span>
                 </button>
               </div>

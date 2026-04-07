@@ -95,7 +95,7 @@ export default function FileUploader({ onAnalyze, loading }) {
             </div>
             <div>
               <p className="font-bold text-white/90 text-lg">
-                Upload multiple files <span className="text-brand-500 font-normal"> or </span> search the web
+                Add your sources, add user input <span className="text-brand-500 font-normal"> or </span> search the web
               </p>
               <p className="text-sm text-white/40 mt-1 max-w-2xl mx-auto leading-relaxed">
                 Connect your process documentation, ERP exports, or search for best practices to initiate deeper agentic analysis.
