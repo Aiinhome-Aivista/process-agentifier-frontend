@@ -17,12 +17,12 @@ import { UserCircle, XCircle, Database, Layers, BarChart, CheckSquare, Archive, 
 function AgentNode({ data }) {
   const accentColor = data.accentColor || '#10b981';
   return (
-    <div 
+    <div
       className="bg-brand-surface border rounded-xl shadow-2xl w-64 overflow-hidden ring-1 ring-white/5"
       style={{ borderColor: `${accentColor}40` }} // 40 is hex for 25% opacity
     >
       <Handle type="target" position={Position.Left} className="w-2.5 h-2.5 border-none" style={{ backgroundColor: accentColor }} />
-      <div 
+      <div
         className="text-brand-dark p-3 flex items-center gap-2"
         style={{ backgroundColor: accentColor }}
       >
@@ -33,8 +33,8 @@ function AgentNode({ data }) {
         <ul className="space-y-3">
           {data.tasks.map((task, i) => (
             <li key={i} className="flex items-start gap-2.5 text-xs text-white/70 font-medium">
-              <div 
-                className="mt-1 w-1.5 h-1.5 rounded-full shrink-0 shadow-[0_0_8px_rgba(16,185,129,0.3)]" 
+              <div
+                className="mt-1 w-1.5 h-1.5 rounded-full shrink-0 shadow-[0_0_8px_rgba(16,185,129,0.3)]"
                 style={{ backgroundColor: accentColor }}
               />
               {task}
@@ -50,7 +50,7 @@ function AgentNode({ data }) {
 function ProcessNode({ data }) {
   const accentColor = data.accentColor || '#10b981';
   return (
-    <div 
+    <div
       className="bg-brand-surface/90 backdrop-blur-md border rounded-xl shadow-xl p-3.5 flex items-center gap-3.5 min-w-[200px] transition-all duration-300 group"
       style={{ borderColor: `${accentColor}60` }} // 60 is hex for 37% opacity
     >
@@ -84,10 +84,10 @@ function DecisionNode({ data }) {
 function AgentGroupNode({ data }) {
   return (
     <div className="w-full h-full bg-brand-500/5 border border-brand-500/20 rounded-2xl relative shadow-inner overflow-hidden">
-       <div className="absolute top-0 left-0 right-0 bg-brand-600/80 backdrop-blur-md text-white px-4 py-2.5 text-sm font-bold flex items-center gap-2">
-         {data.icon && <data.icon size={18} />}
-         {data.label}
-       </div>
+      <div className="absolute top-0 left-0 right-0 bg-brand-600/80 backdrop-blur-md text-white px-4 py-2.5 text-sm font-bold flex items-center gap-2">
+        {data.icon && <data.icon size={18} />}
+        {data.label}
+      </div>
     </div>
   );
 }
