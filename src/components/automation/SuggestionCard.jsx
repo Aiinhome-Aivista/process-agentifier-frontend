@@ -109,9 +109,9 @@ export default function SuggestionCard({ suggestion, index, hideChip }) {
             <ArrowRight size={12} className="text-cyan-400" />
           </div>
           <div>
-            <p className="text-[10px] uppercase font-semibold text-white/50 tracking-tight leading-none mb-0.5">Efficiency Potential</p>
+            <p className="text-[10px] uppercase font-semibold text-white/50 tracking-tight leading-none mb-0.5">Automation Potential</p>
             <p className="text-sm font-bold text-cyan-400 tabular-nums">
-              {suggestion.metrics?.efficiency_potential || '65'}%
+            <span className='font-semibold'>Economic Value :</span>  {suggestion.metrics?.efficiency_potential || '65'}%
             </p>
           </div>
         </div>

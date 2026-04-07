@@ -50,7 +50,7 @@ export default function SuggestionDetailsPage() {
     }
 
     // No manual cleanup needed for sessionStorage as it's tab-specific
-    return () => {}
+    return () => { }
   }, [id])
 
   if (!suggestion) {
@@ -134,8 +134,8 @@ export default function SuggestionDetailsPage() {
           style={{ animationDelay: '500ms', animationFillMode: 'both' }}
         >
           <div className="flex flex-col items-center">
-            <div className="w-px h-4 bg-white/40" />
-            <ChevronDown size={18} className="text-white/40 -mt-1" />
+            <div className="w-px h-5 bg-white" />
+            <ChevronDown size={19} className="text-white -mt-2" />
           </div>
         </div>
 
@@ -147,7 +147,7 @@ export default function SuggestionDetailsPage() {
           <SuggestionCard suggestion={suggestion} index={0} hideChip />
         </div>
         {/* Agentic Workflow Card */}
-        <AgenticWorkflow/>
+        <AgenticWorkflow />
 
         {/* Architecture & Deployment Card */}
         <div

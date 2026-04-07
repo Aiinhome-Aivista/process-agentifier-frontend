@@ -291,7 +291,7 @@ export default function AgenticWorkflow() {
   const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
 
   return (
-    <div className="w-full h-[600px] border border-white/10 rounded-2xl overflow-hidden bg-[#0a0a0a] shadow-inner relative">
+    <div className="w-full h-[500px] border border-white/10 rounded-2xl overflow-hidden relative">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -301,7 +301,7 @@ export default function AgenticWorkflow() {
         nodeTypes={nodeTypes}
         fitView
         attributionPosition="bottom-right"
-        className="!bg-brand-dark/50"
+        className="bg-white/[0.08] border border-white/10 shadow-lg"
       >
         <Controls className="!bg-brand-surface !border-white/10" />
         <Background color="#10b981" gap={20} size={1} style={{ opacity: 0.05 }} />
