@@ -241,9 +241,6 @@ const initialEdges = [
     style: { stroke: '#4b5563', strokeWidth: 2 },
   },
   {
-    id: 'e-analyze-determine',
-    source: 'analyze-alloc',
-    target: 'determine-avail',
     id: 'e-determine-decision',
     source: 'determine-avail',
     target: 'decision',
