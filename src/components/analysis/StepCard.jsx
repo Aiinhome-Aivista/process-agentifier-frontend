@@ -10,33 +10,33 @@ const STEP_TYPE_ICONS = {
 }
 
 const STEP_TYPE_COLORS = {
-  manual:       'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  system:       'bg-blue-500/10 text-blue-400 border-blue-500/20',
-  decision:     'bg-purple-500/10 text-purple-400 border-purple-500/20',
-  approval:     'bg-orange-500/10 text-orange-400 border-orange-500/20',
+  manual: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+  system: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+  decision: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+  approval: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
   notification: 'bg-teal-500/10 text-teal-400 border-teal-500/20',
 }
 
-function AutomationBar({ value , description}) {
+function AutomationBar({ value, automation_reasoning }) {
   const color =
     value >= 80 ? 'bg-brand-500' :
-    value >= 50 ? 'bg-amber-500' : 'bg-red-400'
+      value >= 50 ? 'bg-amber-500' : 'bg-red-400'
   return (
-    <div className="group relative mt-3">
-      {description && (
+    <div className="group relative mt-3 ">
+      {automation_reasoning && (
         <div className="pointer-events-none absolute -top-8 left-1/2 z-10 -translate-x-1/2 w-full rounded-bl-lg rounded-t-lg bg-slate-100 px-2.5 py-1 text-[10px] font-medium text-black opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
-          {description}
+          {automation_reasoning}
         </div>
       )}
       <div className="flex justify-between items-center mb-1">
         <span className="text-xs text-white/40">Automation Potential</span>
         <span className={clsx('text-xs font-semibold',
           value >= 80 ? 'text-brand-500' :
-          value >= 50 ? 'text-amber-400' : 'text-red-400')}>
+            value >= 50 ? 'text-amber-400' : 'text-red-400')}>
           {value}%
         </span>
       </div>
-      <div className="h-1.5 bg-white/5 rounded-full overflow-hidden" title={description}>
+      <div className="h-1.5 bg-white/5 rounded-full overflow-hidden" title={automation_reasoning}>
         <div
           className={clsx('h-full rounded-full transition-all duration-700', color)}
           style={{ width: `${value}%` }}
@@ -57,8 +57,8 @@ export default function StepCard({ step, index, isLast, isSelected, onClick }) {
         onClick={onClick}
         className={clsx(
           "card p-4 w-full flex flex-col cursor-pointer transition-all duration-200 animate-slide-up group",
-          isSelected 
-            ? "bg-white/[0.08] ring-1 ring-brand-500/30" 
+          isSelected
+            ? "bg-white/[0.08] ring-1 ring-brand-500/30"
             : "hover:bg-white/[0.08] hover:ring-1 hover:ring-brand-500/30"
         )}
         style={{ animationDelay: `${index * 60}ms` }}>
@@ -67,7 +67,7 @@ export default function StepCard({ step, index, isLast, isSelected, onClick }) {
           <span className="text-xs font-medium text-white/40 uppercase tracking-wide shrink-0 whitespace-nowrap">
             Step {step.step_number}
           </span>
-          <div 
+          <div
             className={clsx('agent-tag border flex items-center min-w-0', typeColor)}
             title={step.actor}
           >
@@ -90,7 +90,7 @@ export default function StepCard({ step, index, isLast, isSelected, onClick }) {
         </div>
 
         <div className="mt-auto pt-2">
-          <AutomationBar value={step.automation_potential} description={step.description} />
+          <AutomationBar value={step.automation_potential} automation_reasoning={step.automation_reasoning} />
         </div>
 
         {/* Duration */}

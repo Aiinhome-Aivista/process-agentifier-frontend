@@ -224,7 +224,7 @@ export default function OverviewTab({ insights, topTargets, steps, suggestions }
 
                 <div
                   ref={scrollRef}
-                  className="flex items-stretch gap-4 pb-4 scroll-smooth scrollbar-custom px-2 overflow-x-auto"
+                  className="flex items-stretch gap-4 pb-12 scroll-smooth scrollbar-custom px-2 overflow-x-auto"
                 >
                   {steps.map((step, i) => (
                     <StepCard
