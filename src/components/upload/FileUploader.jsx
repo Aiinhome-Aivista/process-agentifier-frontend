@@ -73,7 +73,7 @@ export default function FileUploader({ onAnalyze, loading }) {
           )}
         >
           <Plus size={16} />
-          <span>Upload or Search</span>
+          <span>Add Data Source</span>
         </button>
       </div>
 

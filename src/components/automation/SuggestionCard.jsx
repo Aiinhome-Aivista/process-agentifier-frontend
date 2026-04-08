@@ -111,7 +111,7 @@ export default function SuggestionCard({ suggestion, index, hideChip }) {
           <div>
             <p className="text-[10px] uppercase font-semibold text-white/50 tracking-tight leading-none mb-0.5">Automation Potential</p>
             <p className="text-sm font-bold text-cyan-400 tabular-nums">
-            <span className='font-semibold'>Economic Value :</span>  {suggestion.metrics?.efficiency_potential || '65'}%
+              <span className='font-semibold'>Economic Value :</span>  {suggestion.metrics?.automation_potential || suggestion.metrics?.efficiency_potential || '65'}%
             </p>
           </div>
         </div>
@@ -125,6 +125,19 @@ export default function SuggestionCard({ suggestion, index, hideChip }) {
           }
         </div>
       </div>
+
+      {/* Strategic Reasoning */}
+      {suggestion.metrics?.reason && (
+        <div className="pt-2.5 mt-1 border-t border-white/5">
+          <p className="text-xs uppercase font-bold text-white/30 tracking-widest mb-1 group-hover:text-cyan-400 Transition-all">
+            Strategic Reason
+          </p>
+          <p className="text-xs text-white/50 leading-relaxed italic line-clamp-2 hover:line-clamp-none transition-all duration-300">
+            {suggestion.metrics.reason}
+          </p>
+        </div>
+      )}
+
 
       {/* Technologies */}
       {suggestion.technologies?.length > 0 && (
