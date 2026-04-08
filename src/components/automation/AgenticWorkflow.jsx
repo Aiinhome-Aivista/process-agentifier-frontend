@@ -18,21 +18,21 @@ function AgentNode({ data }) {
   const accentColor = data.accentColor || '#10b981';
   return (
     <div
-      className="bg-brand-surface border rounded-xl shadow-2xl w-64 overflow-hidden ring-1 ring-white/5"
+      className="bg-white border rounded-xl shadow-xl w-64 overflow-hidden ring-1 ring-slate-200"
       style={{ borderColor: `${accentColor}40` }} // 40 is hex for 25% opacity
     >
       <Handle type="target" position={Position.Left} className="w-2.5 h-2.5 border-none" style={{ backgroundColor: accentColor }} />
       <div
-        className="text-brand-dark p-3 flex items-center gap-2"
+        className="text-white p-3 flex items-center gap-2"
         style={{ backgroundColor: accentColor }}
       >
         {data.icon && <data.icon size={20} className="stroke-[2.5]" />}
         <span className="font-extrabold text-[10px] uppercase tracking-widest">{data.title}</span>
       </div>
-      <div className="p-4 bg-white/[0.02]">
+      <div className="p-4 bg-slate-50">
         <ul className="space-y-3">
           {data.tasks.map((task, i) => (
-            <li key={i} className="flex items-start gap-2.5 text-xs text-white/70 font-medium">
+            <li key={i} className="flex items-start gap-2.5 text-xs text-slate-700 font-medium">
               <div
                 className="mt-1 w-1.5 h-1.5 rounded-full shrink-0 shadow-[0_0_8px_rgba(16,185,129,0.3)]"
                 style={{ backgroundColor: accentColor }}
@@ -51,17 +51,17 @@ function ProcessNode({ data }) {
   const accentColor = data.accentColor || '#10b981';
   return (
     <div
-      className="bg-brand-surface/90 backdrop-blur-md border rounded-xl shadow-xl p-3.5 flex items-center gap-3.5 min-w-[200px] transition-all duration-300 group"
+      className="bg-white border rounded-xl shadow-lg p-3.5 flex items-center gap-3.5 min-w-[200px] transition-all duration-300 group"
       style={{ borderColor: `${accentColor}60` }} // 60 is hex for 37% opacity
     >
-      <Handle type="target" position={Position.Left} className="w-2 h-2 !bg-white/20 border-none" />
+      <Handle type="target" position={Position.Left} className="w-2 h-2 !bg-slate-300 border-none" />
       {data.icon && (
         <div style={{ color: accentColor }}>
           <data.icon size={20} className="stroke-[2.5]" />
         </div>
       )}
-      <span className="font-bold text-xs text-white tracking-wide">{data.label}</span>
-      <Handle type="source" position={Position.Right} className="w-2 h-2 !bg-white/20 border-none" />
+      <span className="font-bold text-xs text-slate-800 tracking-wide">{data.label}</span>
+      <Handle type="source" position={Position.Right} className="w-2 h-2 !bg-slate-300 border-none" />
     </div>
   );
 }
@@ -69,9 +69,9 @@ function ProcessNode({ data }) {
 function DecisionNode({ data }) {
   return (
     <div className="relative w-28 h-28 flex items-center justify-center">
-      <div className="absolute inset-0 bg-amber-500/10 border-2 border-amber-500 backdrop-blur-sm shadow-[0_0_15px_rgba(245,158,11,0.2)] transform rotate-45 rounded-xl"></div>
+      <div className="absolute inset-0 bg-amber-100 border-2 border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.2)] transform rotate-45 rounded-xl"></div>
       <Handle type="target" position={Position.Left} className="w-2 h-2 z-20 !bg-amber-500 border-none" />
-      <div className="relative z-10 text-center text-[10px] font-black uppercase tracking-wider text-amber-200 px-2 leading-tight">
+      <div className="relative z-10 text-center text-[10px] font-black uppercase tracking-wider text-amber-900 px-2 leading-tight">
         {data.label}
       </div>
       <Handle type="source" position={Position.Right} id="right" className="w-2 h-2 z-20 !bg-amber-500 border-none" />
@@ -83,8 +83,8 @@ function DecisionNode({ data }) {
 
 function AgentGroupNode({ data }) {
   return (
-    <div className="w-full h-full bg-brand-500/5 border border-brand-500/20 rounded-2xl relative shadow-inner overflow-hidden">
-      <div className="absolute top-0 left-0 right-0 bg-brand-600/80 backdrop-blur-md text-white px-4 py-2.5 text-sm font-bold flex items-center gap-2">
+    <div className="w-full h-full bg-emerald-50 border border-emerald-300 rounded-2xl relative shadow-inner overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 bg-emerald-500 text-white px-4 py-2.5 text-sm font-bold flex items-center gap-2">
         {data.icon && <data.icon size={18} />}
         {data.label}
       </div>
@@ -200,7 +200,7 @@ const initialEdges = [
     type: 'smoothstep',
     animated: true,
     labelStyle: { fill: '#ef4444', fontWeight: 800, fontSize: 10 },
-    labelBgStyle: { fill: '#0a0a0a', fillOpacity: 0.8, padding: 4 },
+    labelBgStyle: { fill: '#ffffff', fillOpacity: 0.9, padding: 4 },
     markerEnd: { type: MarkerType.ArrowClosed, color: '#ef4444' },
     style: { stroke: '#ef4444', strokeWidth: 2, strokeDasharray: '5,5' },
   },
@@ -212,7 +212,7 @@ const initialEdges = [
     type: 'smoothstep',
     animated: true,
     labelStyle: { fill: '#10b981', fontWeight: 800, fontSize: 10 },
-    labelBgStyle: { fill: '#0a0a0a', fillOpacity: 0.8, padding: 4 },
+    labelBgStyle: { fill: '#ffffff', fillOpacity: 0.9, padding: 4 },
     markerEnd: { type: MarkerType.ArrowClosed, color: '#10b981' },
     style: { stroke: '#10b981', strokeWidth: 2 },
   },
@@ -257,7 +257,7 @@ const initialEdges = [
     type: 'smoothstep',
     animated: true,
     labelStyle: { fill: '#10b981', fontWeight: 800, fontSize: 10 },
-    labelBgStyle: { fill: '#0a0a0a', fillOpacity: 0.8, padding: 4 },
+    labelBgStyle: { fill: '#ffffff', fillOpacity: 0.9, padding: 4 },
     markerEnd: { type: MarkerType.ArrowClosed, color: '#10b981' },
     style: { stroke: '#10b981', strokeWidth: 2 },
   },
@@ -270,7 +270,7 @@ const initialEdges = [
     type: 'smoothstep',
     animated: true,
     labelStyle: { fill: '#ef4444', fontWeight: 800, fontSize: 10 },
-    labelBgStyle: { fill: '#0a0a0a', fillOpacity: 0.8, padding: 4 },
+    labelBgStyle: { fill: '#ffffff', fillOpacity: 0.9, padding: 4 },
     markerEnd: { type: MarkerType.ArrowClosed, color: '#ef4444' },
     style: { stroke: '#ef4444', strokeWidth: 2, strokeDasharray: '5,5' },
   },
@@ -291,7 +291,7 @@ export default function AgenticWorkflow() {
   const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
 
   return (
-    <div className="w-full h-[500px] border border-white/10 rounded-2xl overflow-hidden relative">
+    <div className="w-full h-[500px] border border-slate-200 rounded-2xl overflow-hidden relative bg-slate-50">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -301,10 +301,10 @@ export default function AgenticWorkflow() {
         nodeTypes={nodeTypes}
         fitView
         attributionPosition="bottom-right"
-        className="bg-white/[0.08] border border-white/10 shadow-lg"
+        className="bg-white border border-slate-200 shadow-lg"
       >
-        <Controls className="!bg-brand-surface !border-white/10" />
-        <Background color="#10b981" gap={20} size={1} style={{ opacity: 0.05 }} />
+        <Controls className="!bg-white !border-slate-200" />
+        <Background color="#94a3b8" gap={20} size={1} style={{ opacity: 0.25 }} />
       </ReactFlow>
     </div>
   );
