@@ -93,6 +93,7 @@ export default function SuggestionCard({ suggestion, index, hideChip }) {
           label="Accuracy"
           value={`${suggestion.accuracy_estimate}%`}
           bold
+          tooltip={suggestion.description}
         />
         <Metric
           icon={<Zap size={13} className="text-amber-500" />}
@@ -153,9 +154,14 @@ export default function SuggestionCard({ suggestion, index, hideChip }) {
   )
 }
 
-function Metric({ icon, label, value, bold, valueClass }) {
+function Metric({ icon, label, value, bold, valueClass, tooltip }) {
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="group relative flex items-center gap-1.5">
+      {label === 'Accuracy' && tooltip && (
+        <div className="pointer-events-none absolute top- 0 left-20 z-10 w-24 md:w-[40rem] rounded-t-md rounded-br-md bg-slate-100 px-2.5 py-1 text-left text-[10px] leading-tight font-medium text-black opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
+          {tooltip}
+        </div>
+      )}
       {icon}
       <div className="min-w-0">
         <p className="text-[10px] uppercase font-semibold text-white/50 tracking-tight leading-none mb-1">{label}</p>

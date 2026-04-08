@@ -17,12 +17,17 @@ const STEP_TYPE_COLORS = {
   notification: 'bg-teal-500/10 text-teal-400 border-teal-500/20',
 }
 
-function AutomationBar({ value }) {
+function AutomationBar({ value , description}) {
   const color =
     value >= 80 ? 'bg-brand-500' :
     value >= 50 ? 'bg-amber-500' : 'bg-red-400'
   return (
-    <div className="mt-3">
+    <div className="group relative mt-3">
+      {description && (
+        <div className="pointer-events-none absolute -top-8 left-1/2 z-10 -translate-x-1/2 w-full rounded-bl-lg rounded-t-lg bg-slate-100 px-2.5 py-1 text-[10px] font-medium text-black opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
+          {description}
+        </div>
+      )}
       <div className="flex justify-between items-center mb-1">
         <span className="text-xs text-white/40">Automation Potential</span>
         <span className={clsx('text-xs font-semibold',
@@ -31,7 +36,7 @@ function AutomationBar({ value }) {
           {value}%
         </span>
       </div>
-      <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+      <div className="h-1.5 bg-white/5 rounded-full overflow-hidden" title={description}>
         <div
           className={clsx('h-full rounded-full transition-all duration-700', color)}
           style={{ width: `${value}%` }}
@@ -85,7 +90,7 @@ export default function StepCard({ step, index, isLast, isSelected, onClick }) {
         </div>
 
         <div className="mt-auto pt-2">
-          <AutomationBar value={step.automation_potential} />
+          <AutomationBar value={step.automation_potential} description={step.description} />
         </div>
 
         {/* Duration */}
