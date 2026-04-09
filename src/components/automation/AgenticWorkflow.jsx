@@ -92,8 +92,14 @@ function transformFlowData(apiData) {
   const rawEdges = Array.isArray(apiData?.edges) ? apiData.edges : [];
 
   const groupNodes = rawNodes.filter((n) => n.type === 'agentGroupNode');
-  const stepNodes = rawNodes.filter((n) => n.id?.startsWith('step-'));
+  const stepNodes = rawNodes.filter(
+    (n) => n.type === 'processNode' || n.id?.startsWith('step-')
+  );
   const agentNodes = rawNodes.filter((n) => n.type === 'agentNode');
+
+  // Separate steps that belong to a group vs standalone ones.
+  const groupedSteps = stepNodes.filter((n) => n.parentNode);
+  const standaloneSteps = stepNodes.filter((n) => !n.parentNode);
 
   const stepById = new Map(stepNodes.map((n) => [n.id, n]));
 
@@ -112,79 +118,140 @@ function transformFlowData(apiData) {
     outgoingBySource.set(e.source, list);
   });
 
-  // Compute group order from first appearance in process steps.
+  // --- Build topology order for horizontal layout ---
+  // Track adjacency from edges to determine left-to-right order.
+  const incomingEdges = new Map();
+  const outgoingEdges = new Map();
+  rawEdges.forEach((e) => {
+    const inc = incomingEdges.get(e.target) || [];
+    inc.push(e.source);
+    incomingEdges.set(e.target, inc);
+    const out = outgoingEdges.get(e.source) || [];
+    out.push(e.target);
+    outgoingEdges.set(e.source, out);
+  });
+
+  // Compute group order from first appearance in grouped process steps.
   const orderedGroupIds = [];
   const seenGroups = new Set();
-  stepNodes.forEach((n) => {
+  groupedSteps.forEach((n) => {
     if (n.parentNode && !seenGroups.has(n.parentNode)) {
       seenGroups.add(n.parentNode);
       orderedGroupIds.push(n.parentNode);
     }
   });
-
   groupNodes.forEach((g) => {
     if (!seenGroups.has(g.id)) {
       seenGroups.add(g.id);
       orderedGroupIds.push(g.id);
     }
   });
-
   const groupIndexById = new Map(orderedGroupIds.map((id, idx) => [id, idx]));
 
+  // --- Layout constants ---
+  const AGENT_AREA_WIDTH = 320;
+  const AGENT_GAP_Y = 250;
+  const AGENT_START_X = 50;
+  const AGENT_START_Y = 30;
+  const GROUP_GAP_X = 420;
+  const GROUP_START_X = AGENT_AREA_WIDTH + 250;
+  const GROUP_Y = 80;
+  const STANDALONE_GAP_X = 280;
+  const CHILD_NODE_START_Y = 70;
+  const CHILD_NODE_GAP_Y = 95;
+  const GROUP_MIN_WIDTH = 350;
+  const GROUP_HEADER_HEIGHT = 110;
+
+  // --- Map group nodes (positioned on the RIGHT) ---
   const mappedGroups = groupNodes.map((group) => {
-    const children = stepNodes.filter((n) => n.parentNode === group.id);
+    const children = groupedSteps.filter((n) => n.parentNode === group.id);
     const childCount = Math.max(children.length, 1);
     const index = groupIndexById.get(group.id) || 0;
-    const width = 320;
-    const height = Math.max(220, 110 + childCount * 95);
+    const width = GROUP_MIN_WIDTH;
+    const height = Math.max(220, GROUP_HEADER_HEIGHT + childCount * CHILD_NODE_GAP_Y);
     return {
       ...group,
       data: {
         ...group.data,
         icon: ICON_MAP[group.data?.icon] || Database,
+        accentColor: '#10b981',
       },
       position: {
-        x: index * 360,
-        y: 140,
+        x: GROUP_START_X + index * GROUP_GAP_X,
+        y: GROUP_Y,
       },
       style: { width, height, ...group.style },
     };
   });
 
-  // Place child process nodes inside their parent group.
+  // --- Map grouped process steps (children of a group) ---
   const childIndexByGroup = new Map();
-  const mappedSteps = stepNodes.map((node) => {
+  const mappedGroupedSteps = groupedSteps.map((node) => {
     const current = childIndexByGroup.get(node.parentNode) || 0;
     childIndexByGroup.set(node.parentNode, current + 1);
 
     const isDecision = decisionIds.has(node.id);
+    const accent = getStepAccent(node.data?.stepType);
     return {
       ...node,
       type: isDecision ? 'decisionNode' : 'processNode',
       data: isDecision
-        ? {
-            label: node.data?.label || 'Decision',
-          }
+        ? { label: node.data?.label || 'Decision' }
         : {
             ...node.data,
             label: node.data?.label || 'Process Step',
             icon: ICON_MAP[node.data?.icon] || Database,
-            accentColor: getStepAccent(node.data?.stepType),
+            accentColor: accent,
           },
       parentNode: node.parentNode,
       extent: 'parent',
       position: {
-        x: 24,
-        y: 66 + current * 92,
+        x: 30,
+        y: CHILD_NODE_START_Y + current * CHILD_NODE_GAP_Y,
       },
     };
   });
 
-  // Position suggested agent nodes close to the group of their target step.
+  // --- Map standalone process steps (not in any group) ---
+  const mappedStandaloneSteps = standaloneSteps.map((node, index) => {
+    const isDecision = decisionIds.has(node.id);
+    const accent = getStepAccent(node.data?.stepType);
+    // Place standalone nodes to the right of all groups
+    const xBase = GROUP_START_X + (orderedGroupIds.length * GROUP_GAP_X) + (index * STANDALONE_GAP_X);
+    return {
+      ...node,
+      type: isDecision ? 'decisionNode' : 'processNode',
+      data: isDecision
+        ? { label: node.data?.label || 'Decision' }
+        : {
+            ...node.data,
+            label: node.data?.label || 'Process Step',
+            icon: ICON_MAP[node.data?.icon] || Database,
+            accentColor: accent,
+          },
+      position: {
+        x: xBase,
+        y: GROUP_Y + 80,
+      },
+    };
+  });
+
+  // --- Map agent nodes (positioned on the LEFT, stacked vertically) ---
   const mappedAgents = agentNodes.map((node, index) => {
-    const edgeFromAgent = rawEdges.find((e) => e.source === node.id && stepById.has(e.target));
+    const edgeFromAgent = rawEdges.find(
+      (e) => e.source === node.id && stepById.has(e.target)
+    );
     const targetStep = edgeFromAgent ? stepById.get(edgeFromAgent.target) : null;
-    const targetGroupIdx = targetStep ? (groupIndexById.get(targetStep.parentNode) || 0) : index;
+
+    // Derive accent from the target step's stepType, fallback to emerald
+    const targetAccent = targetStep
+      ? getStepAccent(targetStep.data?.stepType)
+      : '#10b981';
+
+    // Place agents on the LEFT, stacked vertically with generous spacing
+    const agentX = AGENT_START_X;
+    const agentY = AGENT_START_Y + index * AGENT_GAP_Y;
+
     return {
       ...node,
       type: 'agentNode',
@@ -192,16 +259,19 @@ function transformFlowData(apiData) {
         ...node.data,
         icon: ICON_MAP[node.data?.icon] || UserCircle,
         title: node.data?.title || 'Automation Agent',
-        tasks: (node.data?.tasks || []).filter(Boolean).length ? node.data.tasks.filter(Boolean) : ['Automates related process steps'],
-        accentColor: '#8b5cf6',
+        tasks: (node.data?.tasks || []).filter(Boolean).length
+          ? node.data.tasks.filter(Boolean)
+          : ['Automates related process steps'],
+        accentColor: targetAccent,
       },
       position: {
-        x: targetGroupIdx * 360 + 360,
-        y: 24 + index * 120,
+        x: agentX,
+        y: agentY,
       },
     };
   });
 
+  // --- Map edges ---
   const conditionalBranchIndex = new Map();
   const mappedEdges = rawEdges.map((edge) => {
     const styleMeta = getEdgeStyle(edge.label);
@@ -216,11 +286,17 @@ function transformFlowData(apiData) {
       style: {
         stroke: styleMeta.stroke,
         strokeWidth: styleMeta.strokeWidth,
-        ...(styleMeta.strokeDasharray ? { strokeDasharray: styleMeta.strokeDasharray } : {}),
+        ...(styleMeta.strokeDasharray
+          ? { strokeDasharray: styleMeta.strokeDasharray }
+          : {}),
       },
     };
 
-    if (decisionIds.has(edge.source) && edge.label?.toLowerCase().includes('conditionally')) {
+    // Handle decision node branching
+    if (
+      decisionIds.has(edge.source) &&
+      edge.label?.toLowerCase().includes('conditionally')
+    ) {
       const idx = conditionalBranchIndex.get(edge.source) || 0;
       conditionalBranchIndex.set(edge.source, idx + 1);
       result.sourceHandle = idx === 0 ? 'top' : 'bottom';
@@ -230,7 +306,10 @@ function transformFlowData(apiData) {
         stroke: idx === 0 ? '#10b981' : '#ef4444',
         ...(idx === 1 ? { strokeDasharray: '5,5' } : {}),
       };
-      result.markerEnd = { type: MarkerType.ArrowClosed, color: idx === 0 ? '#10b981' : '#ef4444' };
+      result.markerEnd = {
+        type: MarkerType.ArrowClosed,
+        color: idx === 0 ? '#10b981' : '#ef4444',
+      };
       result.labelStyle = {
         fill: idx === 0 ? '#10b981' : '#ef4444',
         fontWeight: 800,
@@ -242,7 +321,12 @@ function transformFlowData(apiData) {
   });
 
   return {
-    nodes: [...mappedGroups, ...mappedSteps, ...mappedAgents],
+    nodes: [
+      ...mappedGroups,
+      ...mappedGroupedSteps,
+      ...mappedStandaloneSteps,
+      ...mappedAgents,
+    ],
     edges: mappedEdges,
   };
 }
