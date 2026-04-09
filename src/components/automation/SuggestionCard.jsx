@@ -93,7 +93,7 @@ export default function SuggestionCard({ suggestion, index, hideChip }) {
           label="Accuracy"
           value={`${suggestion.accuracy_estimate}%`}
           bold
-          tooltip={suggestion.description}
+          tooltip={suggestion.accuracy_reason}
         />
         <Metric
           icon={<Zap size={13} className="text-amber-500" />}
