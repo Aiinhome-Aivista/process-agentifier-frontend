@@ -149,18 +149,22 @@ function transformFlowData(apiData) {
   const groupIndexById = new Map(orderedGroupIds.map((id, idx) => [id, idx]));
 
   // --- Layout constants ---
-  const AGENT_AREA_WIDTH = 320;
-  const AGENT_GAP_Y = 250;
+  const AGENT_CARD_WIDTH = 280;
+  const AGENT_COL_GAP = 300;
+  const AGENT_ROW_GAP = 180;
+  const AGENT_COLS = Math.min(3, Math.max(2, Math.ceil(agentNodes.length / 2)));
   const AGENT_START_X = 50;
   const AGENT_START_Y = 30;
+  const AGENT_GRID_WIDTH = AGENT_COLS * AGENT_COL_GAP;
   const GROUP_GAP_X = 420;
-  const GROUP_START_X = AGENT_AREA_WIDTH + 250;
+  const GROUP_START_X = AGENT_START_X + AGENT_GRID_WIDTH + 150;
   const GROUP_Y = 80;
   const STANDALONE_GAP_X = 280;
   const CHILD_NODE_START_Y = 70;
   const CHILD_NODE_GAP_Y = 95;
   const GROUP_MIN_WIDTH = 350;
   const GROUP_HEADER_HEIGHT = 110;
+  const TASK_TRUNCATE_LEN = 80;
 
   // --- Map group nodes (positioned on the RIGHT) ---
   const mappedGroups = groupNodes.map((group) => {
@@ -174,7 +178,7 @@ function transformFlowData(apiData) {
       data: {
         ...group.data,
         icon: ICON_MAP[group.data?.icon] || Database,
-        accentColor: '#10b981',
+        accentColor: group.data?.accentColor || '#10b981',
       },
       position: {
         x: GROUP_START_X + index * GROUP_GAP_X,
@@ -216,7 +220,6 @@ function transformFlowData(apiData) {
   const mappedStandaloneSteps = standaloneSteps.map((node, index) => {
     const isDecision = decisionIds.has(node.id);
     const accent = getStepAccent(node.data?.stepType);
-    // Place standalone nodes to the right of all groups
     const xBase = GROUP_START_X + (orderedGroupIds.length * GROUP_GAP_X) + (index * STANDALONE_GAP_X);
     return {
       ...node,
@@ -236,21 +239,32 @@ function transformFlowData(apiData) {
     };
   });
 
-  // --- Map agent nodes (positioned on the LEFT, stacked vertically) ---
+  // --- Map agent nodes (grid layout on the LEFT) ---
   const mappedAgents = agentNodes.map((node, index) => {
     const edgeFromAgent = rawEdges.find(
       (e) => e.source === node.id && stepById.has(e.target)
     );
     const targetStep = edgeFromAgent ? stepById.get(edgeFromAgent.target) : null;
 
-    // Derive accent from the target step's stepType, fallback to emerald
-    const targetAccent = targetStep
-      ? getStepAccent(targetStep.data?.stepType)
-      : '#10b981';
+    // Use accent from API data, fallback to step type, then emerald
+    const targetAccent = node.data?.accentColor
+      || (targetStep ? getStepAccent(targetStep.data?.stepType) : '#10b981');
 
-    // Place agents on the LEFT, stacked vertically with generous spacing
-    const agentX = AGENT_START_X;
-    const agentY = AGENT_START_Y + index * AGENT_GAP_Y;
+    // Arrange agents in a grid: multiple columns, wrapping rows
+    const col = index % AGENT_COLS;
+    const row = Math.floor(index / AGENT_COLS);
+    const agentX = AGENT_START_X + col * AGENT_COL_GAP;
+    const agentY = AGENT_START_Y + row * AGENT_ROW_GAP;
+
+    // Truncate long task descriptions
+    const rawTasks = (node.data?.tasks || []).filter(Boolean);
+    const truncatedTasks = rawTasks.length
+      ? rawTasks.map((t) =>
+          t.length > TASK_TRUNCATE_LEN
+            ? t.slice(0, TASK_TRUNCATE_LEN) + '…'
+            : t
+        )
+      : ['Automates related process steps'];
 
     return {
       ...node,
@@ -259,9 +273,7 @@ function transformFlowData(apiData) {
         ...node.data,
         icon: ICON_MAP[node.data?.icon] || UserCircle,
         title: node.data?.title || 'Automation Agent',
-        tasks: (node.data?.tasks || []).filter(Boolean).length
-          ? node.data.tasks.filter(Boolean)
-          : ['Automates related process steps'],
+        tasks: truncatedTasks,
         accentColor: targetAccent,
       },
       position: {
@@ -335,10 +347,11 @@ function transformFlowData(apiData) {
 
 function AgentNode({ data }) {
   const accentColor = data.accentColor || '#10b981';
+  const hasTasks = Array.isArray(data.tasks) && data.tasks.length > 0;
   return (
     <div
       className="bg-white border rounded-xl shadow-xl w-64 overflow-hidden ring-1 ring-slate-200"
-      style={{ borderColor: `${accentColor}40` }} // 40 is hex for 25% opacity
+      style={{ borderColor: `${accentColor}40` }}
     >
       <Handle type="target" position={Position.Left} className="w-2.5 h-2.5 border-none" style={{ backgroundColor: accentColor }} />
       <div
@@ -348,19 +361,21 @@ function AgentNode({ data }) {
         {data.icon && <data.icon size={20} className="stroke-[2.5]" />}
         <span className="font-extrabold text-[10px] uppercase tracking-widest">{data.title}</span>
       </div>
-      <div className="p-4 bg-slate-50">
-        <ul className="space-y-3">
-          {data.tasks.map((task, i) => (
-            <li key={i} className="flex items-start gap-2.5 text-xs text-slate-700 font-medium">
-              <div
-                className="mt-1 w-1.5 h-1.5 rounded-full shrink-0 shadow-[0_0_8px_rgba(16,185,129,0.3)]"
-                style={{ backgroundColor: accentColor }}
-              />
-              {task}
-            </li>
-          ))}
-        </ul>
-      </div>
+      {hasTasks && (
+        <div className="p-3 bg-slate-50">
+          <ul className="space-y-2">
+            {data.tasks.map((task, i) => (
+              <li key={i} className="flex items-start gap-2 text-[11px] text-slate-600 font-medium leading-snug">
+                <div
+                  className="mt-1 w-1.5 h-1.5 rounded-full shrink-0"
+                  style={{ backgroundColor: accentColor }}
+                />
+                {task}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <Handle type="source" position={Position.Right} className="w-2.5 h-2.5 border-none" style={{ backgroundColor: accentColor }} />
     </div>
   );
