@@ -36,7 +36,7 @@ function AutomationBar({ value, automation_reasoning }) {
           {value}%
         </span>
       </div>
-      <div className="h-1.5 bg-white/5 rounded-full overflow-hidden" title={automation_reasoning}>
+      <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
         <div
           className={clsx('h-full rounded-full transition-all duration-700', color)}
           style={{ width: `${value}%` }}
