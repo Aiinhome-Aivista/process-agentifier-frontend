@@ -26,6 +26,227 @@ const ICON_MAP = {
   CheckCircle
 };
 
+const STEP_TYPE_ACCENT = {
+  'higher agentic intervention': '#10b981',
+  'human + ai intervention': '#f59e0b',
+  'higher human intervention': '#ef4444',
+};
+
+function getStepAccent(stepType = '') {
+  return STEP_TYPE_ACCENT[stepType.toLowerCase()] || '#10b981';
+}
+
+function toDisplayEdgeLabel(label = '') {
+  const text = label.toLowerCase().trim();
+  if (text === 'conditionally leads to') return 'CONDITIONAL';
+  return text.toUpperCase();
+}
+
+function getEdgeStyle(label = '') {
+  const text = label.toLowerCase();
+  if (text.includes('failed')) {
+    return {
+      stroke: '#ef4444',
+      strokeWidth: 2,
+      strokeDasharray: '5,5',
+      labelColor: '#ef4444',
+      animated: true,
+    };
+  }
+  if (text.includes('valid') || text.includes('approve') || text.includes('yes')) {
+    return {
+      stroke: '#10b981',
+      strokeWidth: 2,
+      labelColor: '#10b981',
+      animated: true,
+    };
+  }
+  if (text.includes('conditionally')) {
+    return {
+      stroke: '#f59e0b',
+      strokeWidth: 2,
+      strokeDasharray: '5,5',
+      labelColor: '#f59e0b',
+      animated: true,
+    };
+  }
+  if (text.includes('automates')) {
+    return {
+      stroke: '#8b5cf6',
+      strokeWidth: 2,
+      strokeDasharray: '5,5',
+      labelColor: '#8b5cf6',
+      animated: true,
+    };
+  }
+  return {
+    stroke: '#4b5563',
+    strokeWidth: 2,
+    labelColor: '#4b5563',
+    animated: true,
+  };
+}
+
+function transformFlowData(apiData) {
+  const rawNodes = Array.isArray(apiData?.nodes) ? apiData.nodes : [];
+  const rawEdges = Array.isArray(apiData?.edges) ? apiData.edges : [];
+
+  const groupNodes = rawNodes.filter((n) => n.type === 'agentGroupNode');
+  const stepNodes = rawNodes.filter((n) => n.id?.startsWith('step-'));
+  const agentNodes = rawNodes.filter((n) => n.type === 'agentNode');
+
+  const stepById = new Map(stepNodes.map((n) => [n.id, n]));
+
+  // Convert decision-like process nodes to diamond nodes.
+  const decisionIds = new Set(
+    stepNodes
+      .filter((n) => (n.data?.label || '').toLowerCase().includes('decision'))
+      .map((n) => n.id)
+  );
+
+  // Compute outgoing edges by source for handle/branch mapping.
+  const outgoingBySource = new Map();
+  rawEdges.forEach((e) => {
+    const list = outgoingBySource.get(e.source) || [];
+    list.push(e);
+    outgoingBySource.set(e.source, list);
+  });
+
+  // Compute group order from first appearance in process steps.
+  const orderedGroupIds = [];
+  const seenGroups = new Set();
+  stepNodes.forEach((n) => {
+    if (n.parentNode && !seenGroups.has(n.parentNode)) {
+      seenGroups.add(n.parentNode);
+      orderedGroupIds.push(n.parentNode);
+    }
+  });
+
+  groupNodes.forEach((g) => {
+    if (!seenGroups.has(g.id)) {
+      seenGroups.add(g.id);
+      orderedGroupIds.push(g.id);
+    }
+  });
+
+  const groupIndexById = new Map(orderedGroupIds.map((id, idx) => [id, idx]));
+
+  const mappedGroups = groupNodes.map((group) => {
+    const children = stepNodes.filter((n) => n.parentNode === group.id);
+    const childCount = Math.max(children.length, 1);
+    const index = groupIndexById.get(group.id) || 0;
+    const width = 320;
+    const height = Math.max(220, 110 + childCount * 95);
+    return {
+      ...group,
+      data: {
+        ...group.data,
+        icon: ICON_MAP[group.data?.icon] || Database,
+      },
+      position: {
+        x: index * 360,
+        y: 140,
+      },
+      style: { width, height, ...group.style },
+    };
+  });
+
+  // Place child process nodes inside their parent group.
+  const childIndexByGroup = new Map();
+  const mappedSteps = stepNodes.map((node) => {
+    const current = childIndexByGroup.get(node.parentNode) || 0;
+    childIndexByGroup.set(node.parentNode, current + 1);
+
+    const isDecision = decisionIds.has(node.id);
+    return {
+      ...node,
+      type: isDecision ? 'decisionNode' : 'processNode',
+      data: isDecision
+        ? {
+            label: node.data?.label || 'Decision',
+          }
+        : {
+            ...node.data,
+            label: node.data?.label || 'Process Step',
+            icon: ICON_MAP[node.data?.icon] || Database,
+            accentColor: getStepAccent(node.data?.stepType),
+          },
+      parentNode: node.parentNode,
+      extent: 'parent',
+      position: {
+        x: 24,
+        y: 66 + current * 92,
+      },
+    };
+  });
+
+  // Position suggested agent nodes close to the group of their target step.
+  const mappedAgents = agentNodes.map((node, index) => {
+    const edgeFromAgent = rawEdges.find((e) => e.source === node.id && stepById.has(e.target));
+    const targetStep = edgeFromAgent ? stepById.get(edgeFromAgent.target) : null;
+    const targetGroupIdx = targetStep ? (groupIndexById.get(targetStep.parentNode) || 0) : index;
+    return {
+      ...node,
+      type: 'agentNode',
+      data: {
+        ...node.data,
+        icon: ICON_MAP[node.data?.icon] || UserCircle,
+        title: node.data?.title || 'Automation Agent',
+        tasks: (node.data?.tasks || []).filter(Boolean).length ? node.data.tasks.filter(Boolean) : ['Automates related process steps'],
+        accentColor: '#8b5cf6',
+      },
+      position: {
+        x: targetGroupIdx * 360 + 360,
+        y: 24 + index * 120,
+      },
+    };
+  });
+
+  const conditionalBranchIndex = new Map();
+  const mappedEdges = rawEdges.map((edge) => {
+    const styleMeta = getEdgeStyle(edge.label);
+    const result = {
+      ...edge,
+      type: 'smoothstep',
+      animated: styleMeta.animated,
+      label: toDisplayEdgeLabel(edge.label),
+      labelStyle: { fill: styleMeta.labelColor, fontWeight: 800, fontSize: 10 },
+      labelBgStyle: { fill: '#ffffff', fillOpacity: 0.9, padding: 4 },
+      markerEnd: { type: MarkerType.ArrowClosed, color: styleMeta.stroke },
+      style: {
+        stroke: styleMeta.stroke,
+        strokeWidth: styleMeta.strokeWidth,
+        ...(styleMeta.strokeDasharray ? { strokeDasharray: styleMeta.strokeDasharray } : {}),
+      },
+    };
+
+    if (decisionIds.has(edge.source) && edge.label?.toLowerCase().includes('conditionally')) {
+      const idx = conditionalBranchIndex.get(edge.source) || 0;
+      conditionalBranchIndex.set(edge.source, idx + 1);
+      result.sourceHandle = idx === 0 ? 'top' : 'bottom';
+      result.label = idx === 0 ? 'YES' : 'NO / PARTIAL';
+      result.style = {
+        ...result.style,
+        stroke: idx === 0 ? '#10b981' : '#ef4444',
+        ...(idx === 1 ? { strokeDasharray: '5,5' } : {}),
+      };
+      result.markerEnd = { type: MarkerType.ArrowClosed, color: idx === 0 ? '#10b981' : '#ef4444' };
+      result.labelStyle = {
+        fill: idx === 0 ? '#10b981' : '#ef4444',
+        fontWeight: 800,
+        fontSize: 10,
+      };
+    }
+
+    return result;
+  });
+
+  return {
+    nodes: [...mappedGroups, ...mappedSteps, ...mappedAgents],
+    edges: mappedEdges,
+  };
+}
+
 // --- Custom Nodes ---
 
 function AgentNode({ data }) {
@@ -131,27 +352,10 @@ export default function AgenticWorkflow({ suggestionId }) {
       setError(null);
       try {
         const data = await getProcessFlow(suggestionId);
-        
-        // Map icon strings to components
-        const mappedNodes = data.nodes.map(node => ({
-          ...node,
-          data: {
-            ...node.data,
-            icon: ICON_MAP[node.data.icon] || Database,
-          },
-          // Ensure group nodes have a default size if not provided
-          style: node.type === 'agentGroupNode' ? { width: 300, height: 400, ...node.style } : node.style
-        }));
 
-        const mappedEdges = data.edges.map(edge => ({
-          ...edge,
-          type: 'smoothstep',
-          markerEnd: { type: MarkerType.ArrowClosed, color: edge.style?.stroke || '#4b5563' },
-          style: { stroke: '#4b5563', strokeWidth: 2, ...edge.style },
-        }));
-
-        setNodes(mappedNodes);
-        setEdges(mappedEdges);
+        const transformed = transformFlowData(data);
+        setNodes(transformed.nodes);
+        setEdges(transformed.edges);
       } catch (err) {
         console.error('Failed to fetch flow:', err);
         setError(err.message);
