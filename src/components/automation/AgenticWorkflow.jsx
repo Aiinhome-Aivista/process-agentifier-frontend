@@ -294,7 +294,13 @@ function transformFlowData(apiData) {
       label: toDisplayEdgeLabel(edge.label),
       labelStyle: { fill: styleMeta.labelColor, fontWeight: 800, fontSize: 10 },
       labelBgStyle: { fill: '#ffffff', fillOpacity: 0.9, padding: 4 },
-      markerEnd: { type: MarkerType.ArrowClosed, color: styleMeta.stroke },
+      markerStart: { 
+        type: MarkerType.ArrowClosed, 
+        width: 15, 
+        height: 15, 
+        color: styleMeta.stroke 
+      },
+      // zIndex: 100,
       style: {
         stroke: styleMeta.stroke,
         strokeWidth: styleMeta.strokeWidth,
