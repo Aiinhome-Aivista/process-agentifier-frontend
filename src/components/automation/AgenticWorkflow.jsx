@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import ReactFlow, {
   Controls,
   Background,
@@ -10,7 +10,21 @@ import ReactFlow, {
   Handle
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { UserCircle, XCircle, Database, Layers, BarChart, CheckSquare, Archive, RefreshCw, ShoppingCart, CheckCircle } from 'lucide-react';
+import { UserCircle, XCircle, Database, Layers, BarChart, CheckSquare, Archive, RefreshCw, ShoppingCart, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
+import { getProcessFlow } from '../../services/api';
+
+const ICON_MAP = {
+  UserCircle,
+  XCircle,
+  Database,
+  Layers,
+  BarChart,
+  CheckSquare,
+  Archive,
+  RefreshCw,
+  ShoppingCart,
+  CheckCircle
+};
 
 // --- Custom Nodes ---
 
@@ -100,195 +114,78 @@ const nodeTypes = {
 };
 
 // --- Initial Data ---
+const initialNodes = [];
+const initialEdges = [];
 
-const initialNodes = [
-  {
-    id: 'start',
-    type: 'processNode',
-    data: { label: 'New Sales Order', icon: ShoppingCart, accentColor: '#10b981' },
-    position: { x: 50, y: 250 },
-  },
-  {
-    id: 'sales-agent',
-    type: 'agentNode',
-    data: { title: 'Sales Order Agent', icon: UserCircle, tasks: ['Validate Order Data'], accentColor: '#10b981' },
-    position: { x: 300, y: 235 },
-  },
-  {
-    id: 'order-rejected',
-    type: 'processNode',
-    data: { label: 'Order Rejected / Correction', icon: XCircle, accentColor: '#ef4444' },
-    position: { x: 650, y: 100 },
-  },
-  {
-    id: 'query-db',
-    type: 'processNode',
-    data: { label: 'Query Inventory DB', icon: Database, accentColor: '#10b981' },
-    position: { x: 650, y: 350 },
-  },
-  {
-    id: 'inventory-group',
-    type: 'agentGroupNode',
-    data: { label: 'Inventory Agent', icon: Database, accentColor: '#10b981' },
-    position: { x: 950, y: 150 },
-    style: { width: 300, height: 400 },
-  },
-  {
-    id: 'check-stock',
-    type: 'processNode',
-    data: { label: 'Check Stock Levels', icon: Layers, accentColor: '#10b981' },
-    position: { x: 40, y: 80 },
-    parentNode: 'inventory-group',
-    extent: 'parent',
-  },
-  {
-    id: 'analyze-alloc',
-    type: 'processNode',
-    data: { label: 'Analyze Allocation', icon: BarChart, accentColor: '#10b981' },
-    position: { x: 40, y: 180 },
-    parentNode: 'inventory-group',
-    extent: 'parent',
-  },
-  {
-    id: 'determine-avail',
-    type: 'processNode',
-    data: { label: 'Determine Availability', icon: CheckSquare, accentColor: '#10b981' },
-    position: { x: 40, y: 280 },
-    parentNode: 'inventory-group',
-    extent: 'parent',
-  },
-  {
-    id: 'decision',
-    type: 'decisionNode',
-    data: { label: 'Stock Available?' },
-    position: { x: 1350, y: 280 },
-  },
-  {
-    id: 'reserve-stock',
-    type: 'processNode',
-    data: { label: 'Reserve Stock', icon: Archive, accentColor: '#10b981' },
-    position: { x: 1600, y: 150 },
-  },
-  {
-    id: 'accept-order',
-    type: 'processNode',
-    data: { label: 'Accept Order', icon: CheckCircle, accentColor: '#10b981' },
-    position: { x: 1900, y: 150 },
-  },
-  {
-    id: 'reorder-agent',
-    type: 'agentNode',
-    data: { title: 'Reorder Agent', icon: RefreshCw, tasks: ['Consider Alternatives', 'Propose Options'], accentColor: '#10b981' },
-    position: { x: 1600, y: 400 },
-  },
-];
-
-const initialEdges = [
-  {
-    id: 'e-start-sales',
-    source: 'start',
-    target: 'sales-agent',
-    type: 'smoothstep',
-    markerEnd: { type: MarkerType.ArrowClosed, color: '#4b5563' },
-    style: { stroke: '#4b5563', strokeWidth: 2 },
-  },
-  {
-    id: 'e-sales-reject',
-    source: 'sales-agent',
-    target: 'order-rejected',
-    label: 'FAILED',
-    type: 'smoothstep',
-    animated: true,
-    labelStyle: { fill: '#ef4444', fontWeight: 800, fontSize: 10 },
-    labelBgStyle: { fill: '#ffffff', fillOpacity: 0.9, padding: 4 },
-    markerEnd: { type: MarkerType.ArrowClosed, color: '#ef4444' },
-    style: { stroke: '#ef4444', strokeWidth: 2, strokeDasharray: '5,5' },
-  },
-  {
-    id: 'e-sales-query',
-    source: 'sales-agent',
-    target: 'query-db',
-    label: 'VALID',
-    type: 'smoothstep',
-    animated: true,
-    labelStyle: { fill: '#10b981', fontWeight: 800, fontSize: 10 },
-    labelBgStyle: { fill: '#ffffff', fillOpacity: 0.9, padding: 4 },
-    markerEnd: { type: MarkerType.ArrowClosed, color: '#10b981' },
-    style: { stroke: '#10b981', strokeWidth: 2 },
-  },
-  {
-    id: 'e-query-check',
-    source: 'query-db',
-    target: 'check-stock',
-    type: 'smoothstep',
-    markerEnd: { type: MarkerType.ArrowClosed, color: '#4b5563' },
-    style: { stroke: '#4b5563', strokeWidth: 2 },
-  },
-  {
-    id: 'e-check-analyze',
-    source: 'check-stock',
-    target: 'analyze-alloc',
-    type: 'smoothstep',
-    markerEnd: { type: MarkerType.ArrowClosed, color: '#4b5563' },
-    style: { stroke: '#4b5563', strokeWidth: 2 },
-  },
-  {
-    id: 'e-analyze-determine',
-    source: 'analyze-alloc',
-    target: 'determine-avail',
-    type: 'smoothstep',
-    markerEnd: { type: MarkerType.ArrowClosed, color: '#4b5563' },
-    style: { stroke: '#4b5563', strokeWidth: 2 },
-  },
-  {
-    id: 'e-determine-decision',
-    source: 'determine-avail',
-    target: 'decision',
-    type: 'smoothstep',
-    markerEnd: { type: MarkerType.ArrowClosed, color: '#4b5563' },
-    style: { stroke: '#4b5563', strokeWidth: 2 },
-  },
-  {
-    id: 'e-decision-reserve',
-    source: 'decision',
-    sourceHandle: 'top',
-    target: 'reserve-stock',
-    label: 'YES',
-    type: 'smoothstep',
-    animated: true,
-    labelStyle: { fill: '#10b981', fontWeight: 800, fontSize: 10 },
-    labelBgStyle: { fill: '#ffffff', fillOpacity: 0.9, padding: 4 },
-    markerEnd: { type: MarkerType.ArrowClosed, color: '#10b981' },
-    style: { stroke: '#10b981', strokeWidth: 2 },
-  },
-  {
-    id: 'e-decision-reorder',
-    source: 'decision',
-    sourceHandle: 'bottom',
-    target: 'reorder-agent',
-    label: 'NO / PARTIAL',
-    type: 'smoothstep',
-    animated: true,
-    labelStyle: { fill: '#ef4444', fontWeight: 800, fontSize: 10 },
-    labelBgStyle: { fill: '#ffffff', fillOpacity: 0.9, padding: 4 },
-    markerEnd: { type: MarkerType.ArrowClosed, color: '#ef4444' },
-    style: { stroke: '#ef4444', strokeWidth: 2, strokeDasharray: '5,5' },
-  },
-  {
-    id: 'e-reserve-accept',
-    source: 'reserve-stock',
-    target: 'accept-order',
-    type: 'smoothstep',
-    markerEnd: { type: MarkerType.ArrowClosed, color: '#10b981' },
-    style: { stroke: '#10b981', strokeWidth: 2 },
-  },
-];
-
-export default function AgenticWorkflow() {
+export default function AgenticWorkflow({ suggestionId }) {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!suggestionId) return;
+
+    const fetchFlow = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await getProcessFlow(suggestionId);
+        
+        // Map icon strings to components
+        const mappedNodes = data.nodes.map(node => ({
+          ...node,
+          data: {
+            ...node.data,
+            icon: ICON_MAP[node.data.icon] || Database,
+          },
+          // Ensure group nodes have a default size if not provided
+          style: node.type === 'agentGroupNode' ? { width: 300, height: 400, ...node.style } : node.style
+        }));
+
+        const mappedEdges = data.edges.map(edge => ({
+          ...edge,
+          type: 'smoothstep',
+          markerEnd: { type: MarkerType.ArrowClosed, color: edge.style?.stroke || '#4b5563' },
+          style: { stroke: '#4b5563', strokeWidth: 2, ...edge.style },
+        }));
+
+        setNodes(mappedNodes);
+        setEdges(mappedEdges);
+      } catch (err) {
+        console.error('Failed to fetch flow:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFlow();
+  }, [suggestionId, setNodes, setEdges]);
 
   const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
+
+  if (loading) {
+    return (
+      <div className="w-full h-[500px] border border-slate-200 rounded-2xl flex items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
+          <p className="text-sm font-medium text-slate-500">Loading automation workflow...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="w-full h-[500px] border border-slate-200 rounded-2xl flex items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center gap-3 text-red-500">
+          <AlertCircle className="w-8 h-8" />
+          <p className="text-sm font-medium">Failed to load workflow: {error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-[500px] border border-slate-200 rounded-2xl overflow-hidden relative bg-slate-50">

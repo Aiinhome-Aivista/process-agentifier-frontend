@@ -39,6 +39,7 @@ export const analyzeFiles = (files, userInput = '') => {
 export const getProcess = (id) => api.get(`/processes/${id}`)
 export const listProcesses = () => api.get('/processes')
 export const getAutomation = (id) => api.get(`/processes/${id}/automation`)
+export const getProcessFlow = (id) => api.get(`/processes/${id}/flow`)
 
 export const loginUser = (email, password) =>
   api.post('/login', { email, password })

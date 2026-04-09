@@ -147,7 +147,7 @@ export default function SuggestionDetailsPage() {
           <SuggestionCard suggestion={suggestion} index={0} hideChip />
         </div>
         {/* Agentic Workflow Card */}
-        <AgenticWorkflow />
+        <AgenticWorkflow suggestionId={id} />
 
         {/* Architecture & Deployment Card */}
         <div
