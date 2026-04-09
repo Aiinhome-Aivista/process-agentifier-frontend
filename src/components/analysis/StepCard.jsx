@@ -22,9 +22,9 @@ function AutomationBar({ value, automation_reasoning }) {
     value >= 80 ? 'bg-brand-500' :
       value >= 50 ? 'bg-amber-500' : 'bg-red-400'
   return (
-    <div className="group relative mt-3 ">
+    <div className="group/bar relative mt-3">
       {automation_reasoning && (
-        <div className="pointer-events-none absolute -top-8 left-1/2 z-10 -translate-x-1/2 w-full rounded-bl-lg rounded-t-lg bg-slate-100 px-2.5 py-1 text-[10px] font-medium text-black opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
+        <div className="pointer-events-none absolute -top-10 left-1/2 z-20 -translate-x-1/2 w-full rounded-bl-lg rounded-t-lg bg-slate-100 px-2.5 py-1.5 text-[10px] font-medium leading-tight text-black opacity-0 shadow-xl transition-all duration-300 translate-y-1 group-hover/bar:opacity-100 group-hover/bar:translate-y-0">
           {automation_reasoning}
         </div>
       )}
