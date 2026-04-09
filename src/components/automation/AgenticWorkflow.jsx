@@ -149,24 +149,25 @@ function transformFlowData(apiData) {
   const groupIndexById = new Map(orderedGroupIds.map((id, idx) => [id, idx]));
 
   // --- Layout constants ---
-  const AGENT_CARD_WIDTH = 280;
+  const GROUP_START_X = 50;
+  const GROUP_Y = 80;
+  const GROUP_GAP_X = 420;
+  const GROUP_MIN_WIDTH = 350;
+  const GROUP_HEADER_HEIGHT = 110;
+  const CHILD_NODE_START_Y = 70;
+  const CHILD_NODE_GAP_Y = 95;
+  const STANDALONE_GAP_X = 280;
+  const TASK_TRUNCATE_LEN = 80;
+
+  // Agent grid starts to the RIGHT of all groups
+  const totalGroupWidth = Math.max(1, orderedGroupIds.length) * GROUP_GAP_X;
   const AGENT_COL_GAP = 300;
   const AGENT_ROW_GAP = 180;
   const AGENT_COLS = Math.min(3, Math.max(2, Math.ceil(agentNodes.length / 2)));
-  const AGENT_START_X = 50;
+  const AGENT_START_X = GROUP_START_X + totalGroupWidth + 100;
   const AGENT_START_Y = 30;
-  const AGENT_GRID_WIDTH = AGENT_COLS * AGENT_COL_GAP;
-  const GROUP_GAP_X = 420;
-  const GROUP_START_X = AGENT_START_X + AGENT_GRID_WIDTH + 150;
-  const GROUP_Y = 80;
-  const STANDALONE_GAP_X = 280;
-  const CHILD_NODE_START_Y = 70;
-  const CHILD_NODE_GAP_Y = 95;
-  const GROUP_MIN_WIDTH = 350;
-  const GROUP_HEADER_HEIGHT = 110;
-  const TASK_TRUNCATE_LEN = 80;
 
-  // --- Map group nodes (positioned on the RIGHT) ---
+  // --- Map group nodes (positioned on the LEFT) ---
   const mappedGroups = groupNodes.map((group) => {
     const children = groupedSteps.filter((n) => n.parentNode === group.id);
     const childCount = Math.max(children.length, 1);
@@ -239,7 +240,7 @@ function transformFlowData(apiData) {
     };
   });
 
-  // --- Map agent nodes (grid layout on the LEFT) ---
+  // --- Map agent nodes (grid layout on the RIGHT) ---
   const mappedAgents = agentNodes.map((node, index) => {
     const edgeFromAgent = rawEdges.find(
       (e) => e.source === node.id && stepById.has(e.target)
@@ -294,7 +295,7 @@ function transformFlowData(apiData) {
       label: toDisplayEdgeLabel(edge.label),
       labelStyle: { fill: styleMeta.labelColor, fontWeight: 800, fontSize: 10 },
       labelBgStyle: { fill: '#ffffff', fillOpacity: 0.9, padding: 4 },
-      markerStart: { 
+      markerEnd: { 
         type: MarkerType.ArrowClosed, 
         width: 15, 
         height: 15, 
@@ -309,6 +310,13 @@ function transformFlowData(apiData) {
           : {}),
       },
     };
+
+    // If edge is coming from an agent and going to a process step, reverse it
+    // so the animation runs left-to-right (from process to agent)
+    if (agentNodes.some(n => n.id === edge.source) && stepNodes.some(n => n.id === edge.target)) {
+      result.source = edge.target;
+      result.target = edge.source;
+    }
 
     // Handle decision node branching
     if (
