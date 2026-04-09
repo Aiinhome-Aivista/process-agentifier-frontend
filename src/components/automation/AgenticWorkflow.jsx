@@ -431,7 +431,7 @@ function DecisionNode({ data }) {
 
 function AgentGroupNode({ data }) {
   return (
-    <div className="w-full h-full bg-emerald-50 border border-emerald-300 rounded-2xl relative shadow-inner overflow-hidden">
+    <div className="w-full h-1/2 bg-emerald-50 border border-emerald-300 rounded-2xl relative shadow-inner overflow-hidden">
       <div className="absolute top-0 left-0 right-0 bg-emerald-500 text-white px-4 py-2.5 text-sm font-bold flex items-center gap-2">
         {data.icon && <data.icon size={18} />}
         {data.label}
