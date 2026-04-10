@@ -93,56 +93,60 @@ export default function ERPContextTab({ erpModules, process }) {
   }
 
   return (
-    <div className="animate-fade-in grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div className="animate-fade-in grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
       {/* Module Identification */}
-      <div>
+      <div className="flex flex-col">
         <div className="flex items-center gap-2 mb-4">
           <Database size={16} className="text-brand-500" />
           <h2 className="text-base font-semibold text-white/90">Module Identification</h2>
         </div>
-        {hasModules ? (
-          <div className="space-y-3">
-            {erpModules.map((mod, i) => <ModuleCard key={i} mod={mod} />)}
-          </div>
-        ) : (
-          <div className="card p-6 text-center">
-            <Database size={24} className="text-white/10 mx-auto mb-2" />
-            <p className="text-sm text-white/40">
-              No ERP modules identified in the uploaded files.
-            </p>
-            <p className="text-xs text-white/20 mt-1">
-              Upload ERP data dumps for module-level analysis.
-            </p>
-          </div>
-        )}
+        <div>
+          {hasModules ? (
+            <div className="space-y-3">
+              {erpModules.map((mod, i) => <ModuleCard key={i} mod={mod} />)}
+            </div>
+          ) : (
+            <div className="card p-6 text-center flex flex-col justify-center">
+              <Database size={24} className="text-white/10 mx-auto mb-2" />
+              <p className="text-sm text-white/40">
+                No ERP modules identified in the uploaded files.
+              </p>
+              <p className="text-xs text-white/20 mt-1">
+                Upload ERP data dumps for module-level analysis.
+              </p>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Logical Relationships */}
-      <div>
+      <div className="flex flex-col">
         <div className="flex items-center gap-2 mb-4">
           <GitFork size={16} className="text-brand-500" />
           <h2 className="text-base font-semibold text-white/90">Logical Relationships</h2>
         </div>
-        {hasModules ? (
-          <div className="card p-5 space-y-3">
-            {erpModules.map((mod, i) => (
-              <div key={i} className="flex items-start gap-3 py-2 border-b border-white/5 last:border-0">
-                <div className="w-2 h-2 rounded-full bg-brand-500/40 mt-1.5 shrink-0" />
-                <div>
-                  <p className="text-sm font-medium text-white/80">{mod.module_name}</p>
-                  <p className="text-xs text-white/30">{mod.erp_system} · {mod.description?.slice(0, 80)}...</p>
+        <div>
+          {hasModules ? (
+            <div className="card p-5 space-y-3">
+              {erpModules.map((mod, i) => (
+                <div key={i} className="flex items-start gap-3 py-2 border-b border-white/5 last:border-0">
+                  <div className="w-2 h-2 rounded-full bg-brand-500/40 mt-1.5 shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-white/80">{mod.module_name}</p>
+                    <p className="text-xs text-white/30">{mod.erp_system} · {mod.description?.slice(0, 80)}...</p>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="card p-6 text-center">
-            <GitFork size={24} className="text-white/10 mx-auto mb-2" />
-            <p className="text-sm text-white/40">
-              Logical relationships will appear here once ERP modules are identified.
-            </p>
-          </div>
-        )}
+              ))}
+            </div>
+          ) : (
+            <div className="card p-6 text-center flex flex-col justify-center">
+              <GitFork size={24} className="text-white/10 mx-auto mb-2" />
+              <p className="text-sm text-white/40">
+                Logical relationships will appear here once ERP modules are identified.
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

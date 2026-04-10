@@ -28,8 +28,7 @@ function AnimatedScore({ target }) {
 const TABS = [
   { id: 'overview', label: 'Overview' },
   { id: 'erp', label: 'ERP Context' },
-  { id: 'map', label: 'Map' },
-  { id: 'automation', label: 'Automation' },
+  /*   { id: 'automation', label: 'Automation' }, */
 ]
 
 export default function ProcessHeader({ process, activeTab, onTabChange, actions }) {
@@ -57,7 +56,7 @@ export default function ProcessHeader({ process, activeTab, onTabChange, actions
           </p>
           <div className="flex items-center gap-2 justify-end">
             <AnimatedScore target={process.automation_score} />
-           
+
           </div>
           {process.erp_system && (
             <p className="text-xs text-white/40 mt-1">ERP: {process.erp_system}</p>

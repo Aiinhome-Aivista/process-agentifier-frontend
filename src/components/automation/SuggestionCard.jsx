@@ -1,45 +1,69 @@
 import clsx from 'clsx'
-import { Cpu, Shield, Zap, ArrowRight } from 'lucide-react'
+import { Cpu, Shield, Zap, ArrowRight, Lightbulb } from 'lucide-react'
 
 const AGENT_TYPE_META = {
-  system_integration:   { label: 'System Integration', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
-  rpa:                  { label: 'RPA',                 color: 'bg-purple-500/10 text-purple-400 border-purple-500/20' },
-  ai_agent:             { label: 'AI Agent',            color: 'bg-brand-500/10 text-brand-400 border-brand-500/20' },
-  workflow_automation:  { label: 'Workflow',            color: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
-  communication_agent:  { label: 'Comm Agent',         color: 'bg-teal-500/10 text-teal-400 border-teal-500/20' },
+  system_integration: { label: 'System Integration', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
+  rpa: { label: 'RPA', color: 'bg-purple-500/10 text-purple-400 border-purple-500/20' },
+  ai_agent: { label: 'AI Agent', color: 'bg-brand-500/10 text-brand-400 border-brand-500/20' },
+  workflow_automation: { label: 'Workflow', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
+  communication_agent: { label: 'Comm Agent', color: 'bg-teal-500/10 text-teal-400 border-teal-500/20' },
 }
 
 const ROI_COLORS = {
-  high:   'text-brand-500',
+  high: 'text-brand-500',
   medium: 'text-amber-500',
-  low:    'text-white/40',
+  low: 'text-white/40',
 }
 
 const EFFORT_COLORS = {
-  low:    'bg-brand-500/10 text-brand-400',
+  low: 'bg-brand-500/10 text-brand-400',
   medium: 'bg-amber-500/10 text-amber-400',
-  high:   'bg-red-500/10 text-red-400',
+  high: 'bg-red-500/10 text-red-400',
 }
 
-export default function SuggestionCard({ suggestion, index }) {
+export default function SuggestionCard({ suggestion, index, hideChip }) {
   const meta = AGENT_TYPE_META[suggestion.agent_type] || AGENT_TYPE_META.workflow_automation
 
+  const handleOpenStats = (e) => {
+    e.stopPropagation()
+    const id = suggestion.id || btoa(suggestion.title).substring(0, 10)
+    // Extract the analysis ID from the current URL (e.g. /analysis/abc123)
+    const pathParts = window.location.pathname.split('/')
+    const analysisIdx = pathParts.indexOf('analysis')
+    const analysisId = analysisIdx !== -1 ? pathParts[analysisIdx + 1] : null
+
+    const details = {
+      ...suggestion,
+      analysisId,
+      benefits: suggestion.benefits || [
+        "Increases overall execution speed and operational efficiency",
+        "Reduces manual effort significantly and frees up human resources",
+        "Improves data accuracy, consistency and mitigates human errors",
+        "Streamlines workflow handling with better compliance"
+      ]
+    }
+    sessionStorage.setItem(`suggestion_${id}`, JSON.stringify(details))
+    const baseUrl = import.meta.env.BASE_URL || '/'
+    window.open(`${baseUrl}suggestion/${id}`.replace(/\/\//g, '/'), '_blank')
+  }
+
   return (
-    <div className="card p-5 hover:shadow-md transition-all duration-200 animate-slide-up relative overflow-hidden"
+    <div className="card  p-5 hover:shadow-md transition-all duration-200 animate-slide-up relative overflow-hidden"
       style={{ animationDelay: `${index * 80}ms` }}>
 
       {/* Top-right badge icon */}
-      <div className="absolute top-4 right-4 w-9 h-9 rounded-xl bg-brand-500
-          flex items-center justify-center shadow-lg shadow-brand-500/20">
-        <Cpu size={16} className="text-black" />
-      </div>
+      {!hideChip && (
+        <div
+          onClick={handleOpenStats}
+          className="absolute top-4 right-4 w-9 h-9 rounded-xl bg-brand-500
+            flex items-center justify-center shadow-lg shadow-brand-500/20 cursor-pointer hover:bg-brand-400 hover:scale-110 transition-all z-10"
+          title="View Details"
+        >
+          <Lightbulb size={18} className="text-black" />
+        </div>
+      )}
 
       {/* Category label */}
-      <div className="flex items-center gap-2 mb-3">
-        <span className="text-xs font-semibold text-brand-500 uppercase tracking-widest">
-          Agentic Suggestion ⚡
-        </span>
-      </div>
 
       {/* Title */}
       <h3 className="font-bold text-white/90 text-base leading-snug pr-10 mb-2">
@@ -48,12 +72,6 @@ export default function SuggestionCard({ suggestion, index }) {
       <p className="text-sm text-white/60 leading-relaxed mb-4">
         {suggestion.description}
       </p>
-
-      {/* Implementation hint */}
-      {/* <div className="bg-gray-50 rounded-xl px-3 py-2.5 mb-4 text-xs text-gray-600 flex items-start gap-2">
-        <ArrowRight size={12} className="mt-0.5 shrink-0 text-brand-400" />
-        <span>{suggestion.implementation}</span>
-      </div> */}
 
       {/* Tags row */}
       <div className="flex flex-wrap items-center gap-2 mb-4">
@@ -69,12 +87,13 @@ export default function SuggestionCard({ suggestion, index }) {
       </div>
 
       {/* Metrics */}
-      <div className="grid grid-cols-2 gap-3 pt-3 border-t border-white/5">
+      <div className="flex justify-between gap-3 pt-3 border-t border-white/5">
         <Metric
           icon={<Shield size={13} className="text-brand-500" />}
           label="Accuracy"
           value={`${suggestion.accuracy_estimate}%`}
           bold
+          tooltip={suggestion.accuracy_reason}
         />
         <Metric
           icon={<Zap size={13} className="text-amber-500" />}
@@ -83,6 +102,43 @@ export default function SuggestionCard({ suggestion, index }) {
           valueClass={ROI_COLORS[suggestion.roi_impact]}
         />
       </div>
+
+      {/* Efficiency Potential */}
+      <div className="flex items-center justify-between gap-3 pt-3 mt-1 border-t border-white/5">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center justify-center">
+            <ArrowRight size={12} className="text-cyan-400" />
+          </div>
+          <div>
+            <p className="text-[10px] uppercase font-semibold text-white/50 tracking-tight leading-none mb-0.5">Automation Potential</p>
+            <p className="text-sm font-bold text-cyan-400 tabular-nums">
+              <span className='font-semibold'>Economic Value :</span>  {suggestion.metrics?.automation_potential || suggestion.metrics?.efficiency_potential || '65'}%
+            </p>
+          </div>
+        </div>
+        <div className="text-right">
+          {suggestion.metrics?.outputs?.length > 0 &&
+            suggestion.metrics.outputs.slice(0, 2).map((output, idx) => (
+              <p key={idx} className="text-xs text-white/40 leading-tight truncate">
+                ~ {output}
+              </p>
+            ))
+          }
+        </div>
+      </div>
+
+      {/* Strategic Reasoning */}
+      {suggestion.metrics?.reason && (
+        <div className="pt-2.5 mt-1 border-t border-white/5">
+          <p className="text-xs uppercase font-bold text-white/30 tracking-widest mb-1 group-hover:text-cyan-400 Transition-all">
+            Strategic Reason
+          </p>
+          <p className="text-xs text-white/50 leading-relaxed italic line-clamp-2 hover:line-clamp-none transition-all duration-300">
+            {suggestion.metrics.reason}
+          </p>
+        </div>
+      )}
+
 
       {/* Technologies */}
       {suggestion.technologies?.length > 0 && (
@@ -98,13 +154,22 @@ export default function SuggestionCard({ suggestion, index }) {
   )
 }
 
-function Metric({ icon, label, value, bold, valueClass }) {
+function Metric({ icon, label, value, bold, valueClass, tooltip }) {
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="group relative flex items-center gap-1.5">
+      {label === 'Accuracy' && tooltip && (
+        <div className="pointer-events-none absolute top- 0 left-20 z-10 w-24 md:w-[40rem] rounded-t-md rounded-br-md bg-slate-100 px-2.5 py-1 text-left text-[10px] leading-tight font-medium text-black opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
+          {tooltip}
+        </div>
+      )}
       {icon}
-      <div>
-        <p className="text-xs text-gray-400">{label}</p>
-        <p className={clsx('text-sm font-semibold', valueClass || 'text-gray-800', bold && 'text-brand-500')}>
+      <div className="min-w-0">
+        <p className="text-[10px] uppercase font-semibold text-white/50 tracking-tight leading-none mb-1">{label}</p>
+        <p className={clsx(
+          'text-sm font-semibold tabular-nums',
+          valueClass || 'text-white/65',
+          bold && 'text-brand-400'
+        )}>
           {value}
         </p>
       </div>

@@ -3,7 +3,6 @@ import { useParams, useLocation, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import ProcessHeader from '../components/analysis/ProcessHeader'
 import OverviewTab from '../components/analysis/OverviewTab'
-import MapTab from '../components/analysis/MapTab'
 import ERPContextTab from '../components/analysis/ERPContextTab'
 import AutomationTab from '../components/analysis/AutomationTab'
 import ExportPDF from '../components/pdf/ExportPdf'
@@ -22,10 +21,19 @@ export default function AnalysisPage() {
     if (!result && id) {
       setLoading(true)
       getProcess(id)
-        .then(data => setResult(data))
+        .then(data => {
+          setResult(data)
+          sessionStorage.setItem(`analysis_${id}`, JSON.stringify(data))
+        })
         .catch(err => setError(err.message))
         .finally(() => setLoading(false))
+    } else if (result && id) {
+      sessionStorage.setItem(`analysis_${id}`, JSON.stringify(result))
     }
+
+    // No manual cleanup needed for sessionStorage as it's tab-specific 
+    // and persists through page refreshes.
+    return () => {}
   }, [id, result])
 
   if (loading) {
@@ -75,10 +83,9 @@ export default function AnalysisPage() {
           <OverviewTab
             insights={key_insights}
             topTargets={top_automation_targets}
+            steps={steps}
+            suggestions={suggestions}
           />
-        )}
-        {activeTab === 'map' && (
-          <MapTab steps={steps} />
         )}
         {activeTab === 'erp' && (
           <ERPContextTab erpModules={erp_modules} process={process} />

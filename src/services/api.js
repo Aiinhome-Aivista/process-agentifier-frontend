@@ -12,7 +12,7 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL
 // console.log(import.meta.env.VITE_API_BASE_URL)
 const api = axios.create({
   baseURL: BASE_URL,
-  timeout: 120000, // 2 min for long analyses
+  timeout: 6000000,
 })
 
 api.interceptors.response.use(
@@ -23,9 +23,14 @@ api.interceptors.response.use(
   }
 )
 
-export const analyzeFiles = (files) => {
+export const analyzeFiles = (files, userInput = '') => {
   const form = new FormData()
-  files.forEach(f => form.append('files', f))
+  if (files && files.length > 0) {
+    files.forEach(f => form.append('files', f))
+  }
+  if (userInput) {
+    form.append('user_input', userInput)
+  }
   return api.post('/analyze', form, {
     headers: { 'Content-Type': 'multipart/form-data' },
   })
@@ -34,5 +39,9 @@ export const analyzeFiles = (files) => {
 export const getProcess = (id) => api.get(`/processes/${id}`)
 export const listProcesses = () => api.get('/processes')
 export const getAutomation = (id) => api.get(`/processes/${id}/automation`)
+export const getProcessFlow = (id) => api.get(`/processes/${id}/flow`)
+
+export const loginUser = (email, password) =>
+  api.post('/login', { email, password })
 
 export default api

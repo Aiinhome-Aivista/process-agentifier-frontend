@@ -10,24 +10,29 @@ const STEP_TYPE_ICONS = {
 }
 
 const STEP_TYPE_COLORS = {
-  manual:       'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  system:       'bg-blue-500/10 text-blue-400 border-blue-500/20',
-  decision:     'bg-purple-500/10 text-purple-400 border-purple-500/20',
-  approval:     'bg-orange-500/10 text-orange-400 border-orange-500/20',
+  manual: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+  system: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+  decision: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+  approval: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
   notification: 'bg-teal-500/10 text-teal-400 border-teal-500/20',
 }
 
-function AutomationBar({ value }) {
+function AutomationBar({ value, automation_reasoning }) {
   const color =
     value >= 80 ? 'bg-brand-500' :
-    value >= 50 ? 'bg-amber-500' : 'bg-red-400'
+      value >= 50 ? 'bg-amber-500' : 'bg-red-400'
   return (
-    <div className="mt-3">
+    <div className="group/bar relative mt-3">
+      {automation_reasoning && (
+        <div className="pointer-events-none absolute -top-10 left-1/2 z-20 -translate-x-1/2 w-full rounded-bl-lg rounded-t-lg bg-slate-100 px-2.5 py-1.5 text-[10px] font-medium leading-tight text-black opacity-0 shadow-xl transition-all duration-300 translate-y-1 group-hover/bar:opacity-100 group-hover/bar:translate-y-0">
+          {automation_reasoning}
+        </div>
+      )}
       <div className="flex justify-between items-center mb-1">
         <span className="text-xs text-white/40">Automation Potential</span>
         <span className={clsx('text-xs font-semibold',
           value >= 80 ? 'text-brand-500' :
-          value >= 50 ? 'text-amber-400' : 'text-red-400')}>
+            value >= 50 ? 'text-amber-400' : 'text-red-400')}>
           {value}%
         </span>
       </div>
@@ -41,28 +46,38 @@ function AutomationBar({ value }) {
   )
 }
 
-export default function StepCard({ step, index, isLast }) {
+export default function StepCard({ step, index, isLast, isSelected, onClick }) {
   const Icon = STEP_TYPE_ICONS[step.step_type] || User
   const typeColor = STEP_TYPE_COLORS[step.step_type] || STEP_TYPE_COLORS.manual
 
   return (
-    <div className="flex items-start gap-3 shrink-0 w-64">
+    <div className="flex items-stretch gap-3 shrink-0 w-72">
       {/* Card */}
-      <div className="card p-4 w-full hover:shadow-md transition-shadow duration-200 animate-slide-up"
+      <div
+        onClick={onClick}
+        className={clsx(
+          "card p-4 w-full flex flex-col cursor-pointer transition-all duration-200 animate-slide-up group",
+          isSelected
+            ? "bg-white/[0.08] ring-1 ring-brand-500/30"
+            : "hover:bg-white/[0.08] hover:ring-1 hover:ring-brand-500/30"
+        )}
         style={{ animationDelay: `${index * 60}ms` }}>
         {/* Header */}
-        <div className="flex items-start justify-between gap-2 mb-2">
-          <span className="text-xs font-medium text-white/40 uppercase tracking-wide">
+        <div className="flex items-center justify-between gap-2 mb-2 min-w-0">
+          <span className="text-xs font-medium text-white/40 uppercase tracking-wide shrink-0 whitespace-nowrap">
             Step {step.step_number}
           </span>
-          <span className={clsx('agent-tag border', typeColor)}>
-            <Icon size={10} className="inline mr-1" />
-            {step.actor}
-          </span>
+          <div
+            className={clsx('agent-tag border flex items-center min-w-0', typeColor)}
+            title={step.actor}
+          >
+            <Icon size={10} className="shrink-0 mr-1" />
+            <span className="truncate">{step.actor}</span>
+          </div>
         </div>
 
         {/* Title */}
-        <h3 className="font-semibold text-white/90 text-sm leading-snug mb-1">
+        <h3 className="font-semibold text-white/90 text-sm leading-snug mb-1 group-hover:text-brand-400 transition-colors">
           {step.title}
         </h3>
         <p className="text-xs text-white/50 leading-relaxed line-clamp-3">
@@ -74,7 +89,9 @@ export default function StepCard({ step, index, isLast }) {
           <Icon size={10} />{step.step_type}
         </div>
 
-        <AutomationBar value={step.automation_potential} />
+        <div className="mt-auto pt-2">
+          <AutomationBar value={step.automation_potential} automation_reasoning={step.automation_reasoning} />
+        </div>
 
         {/* Duration */}
         {step.duration_estimate && (
@@ -95,3 +112,5 @@ export default function StepCard({ step, index, isLast }) {
     </div>
   )
 }
+
+
