@@ -3,7 +3,7 @@ import { ChevronRight, ChevronLeft, TrendingUp, ArrowLeft, Zap } from 'lucide-re
 import { usePDF } from '../../context/PdfContext'
 import clsx from 'clsx'
 import StepCard from './StepCard'
-import AutomationChart from '../charts/AutomationChart'
+// import AutomationChart from '../charts/AutomationChart'
 import SuggestionCard from '../automation/SuggestionCard'
 
 
@@ -176,12 +176,12 @@ export default function OverviewTab({ insights, topTargets, steps, suggestions }
             ))}
           </div>
 
-          <div className="pt-10 pdf-atomic">
+          {/* <div className="pt-10 pdf-atomic">
             <h3 className="text-lg font-bold text-gray-900 mb-6 border-b pb-2">Automation Potential Variance</h3>
             <div className="chart-container-pdf">
               <AutomationChart steps={steps} />
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     )
