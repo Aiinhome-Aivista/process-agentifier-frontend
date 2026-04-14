@@ -65,10 +65,10 @@ function getEdgeStyle(label = '') {
 
   if (text.includes('valid') || text.includes('approve') || text.includes('yes') || text.includes('automates') || text.includes('agentic')) {
     return {
-      stroke: '#10b981', // Solid Green for automation line
+      stroke: '#10b981',
       strokeWidth: 2.5,
       strokeDasharray: 'none',
-      labelColor: '#000000', // Black color as requested
+      labelColor: '#000000', 
       animated: true,
     };
   }
@@ -140,7 +140,7 @@ function transformFlowData(apiData) {
           icon: ICON_MAP[node.data?.icon] || UserCircle,
           title: node.data?.title || 'Automation Agent',
           tasks: truncatedTasks,
-          accentColor: '#10b981', // Project theme green for Agent cards
+          accentColor: '#10b981', 
         },
       };
     }
@@ -194,10 +194,10 @@ function transformFlowData(apiData) {
 
     if (isAgentic) {
       result.type = 'agenticEdge';
-      result.markerEnd = undefined; // Use gear icon instead of arrow
+      result.markerEnd = undefined; 
     }
 
-    // Edge direction correction for Agent -> Step connections
+  
     if (
       rawNodes.find(n => n.id === edge.source && n.type === 'agentNode') &&
       rawNodes.find(n => n.id === edge.target && (n.type === 'processNode' || n.id?.startsWith('step-')))
