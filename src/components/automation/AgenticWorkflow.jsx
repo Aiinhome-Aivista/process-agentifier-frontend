@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, useRef,useMemo } from 'react';
+import React, { useCallback, useEffect, useState, useRef, useMemo } from 'react';
 import ReactFlow, {
   Controls,
   Background,
@@ -39,6 +39,12 @@ const STEP_TYPE_ACCENT = {
   'higher human intervention': '#ef4444',
 };
 
+const AGENTIC_KEYWORDS_REGEX = /automates|agentic|triggers|checks|validates|analyzes|calculates|continues/i;
+
+function isAgenticEdgeLabel(label = '') {
+  return AGENTIC_KEYWORDS_REGEX.test(label);
+}
+
 function getStepAccent(stepType = '') {
   return STEP_TYPE_ACCENT[stepType.toLowerCase()] || '#10b981';
 }
@@ -53,22 +59,22 @@ function toDisplayEdgeLabel(label = '') {
 function getEdgeStyle(label = '') {
   const text = (label || '').toLowerCase();
 
-  if (text.includes('failed')) {
+  if (text.includes('failed') || text.includes('invalid') || text.includes('reject') || text.includes('no') || text.includes('partially')) {
     return {
       stroke: '#ef4444',
       strokeWidth: 2.5,
-      strokeDasharray: '5,5',
+      strokeDasharray: 'none',
       labelColor: '#ef4444',
       animated: true,
     };
   }
 
-  if (text.includes('valid') || text.includes('approve') || text.includes('yes') || text.includes('automates') || text.includes('agentic')) {
+  if (text.includes('valid') || text.includes('approve') || text.includes('yes') || isAgenticEdgeLabel(text)) {
     return {
       stroke: '#10b981',
       strokeWidth: 2.5,
       strokeDasharray: 'none',
-      labelColor: '#000000',
+      labelColor: '#10b981',
       animated: true,
     };
   }
@@ -77,7 +83,7 @@ function getEdgeStyle(label = '') {
     return {
       stroke: '#f59e0b',
       strokeWidth: 2,
-      strokeDasharray: '5,5',
+      strokeDasharray: 'none',
       labelColor: '#f59e0b',
       animated: true,
     };
@@ -100,7 +106,12 @@ function transformFlowData(apiData) {
   const stepById = new Map(rawNodes.map((n) => [n.id, n]));
   const decisionIds = new Set(
     rawNodes
-      .filter((n) => (n.data?.label || '').toLowerCase().includes('decision'))
+      .filter((n) =>
+        (n.data?.label || '').toLowerCase().includes('decision') ||
+        (n.data?.label || '').toLowerCase().includes('?') ||
+        n.id.toLowerCase().includes('decision') ||
+        n.type === 'decisionNode'
+      )
       .map((n) => n.id)
   );
 
@@ -135,10 +146,17 @@ function transformFlowData(apiData) {
     const accent = getStepAccent(node.data?.stepType);
 
     // Find agentic info for tooltips
-    const edgeToAgent = rawEdges.find(e => 
-      (e.source === node.id || e.target === node.id) && 
-      (e.label?.toLowerCase().includes('automates') || e.label?.toLowerCase().includes('agentic'))
-    );
+    const edgeToAgent = rawEdges.find(e => {
+      const isAgentSource = stepById.get(e.source)?.type === 'agentNode';
+      const isAgentTarget = stepById.get(e.target)?.type === 'agentNode';
+      const isProcessSource = stepById.get(e.source)?.type === 'processNode';
+      const isProcessTarget = stepById.get(e.target)?.type === 'processNode';
+
+      const connectsProcessAndAgent = (isAgentSource && isProcessTarget) || (isAgentTarget && isProcessSource);
+      const hasAgenticLabel = isAgenticEdgeLabel(e.label || '');
+
+      return (e.source === node.id || e.target === node.id) && (connectsProcessAndAgent || hasAgenticLabel);
+    });
     let agenticInfo = null;
     if (edgeToAgent) {
       const agentId = edgeToAgent.source === node.id ? edgeToAgent.target : edgeToAgent.source;
@@ -173,6 +191,7 @@ function transformFlowData(apiData) {
 
   // --- Map Edges ---
   const conditionalBranchIndex = new Map();
+  const nodeOutgoingCounts = new Map();
   const mappedEdges = rawEdges.map((edge) => {
     const styleMeta = getEdgeStyle(edge.label);
     const result = {
@@ -196,45 +215,27 @@ function transformFlowData(apiData) {
       },
     };
 
-    const isAgentic = (edge.label || '').toLowerCase().includes('automates') ||
-      (edge.label || '').toLowerCase().includes('agentic');
+    const isAgentic = isAgenticEdgeLabel(edge.label || '');
 
     if (isAgentic) {
       result.type = 'agenticEdge';
       result.markerEnd = undefined;
       result.sourceHandle = 'agentic-out';
       result.targetHandle = 'agentic-in';
-      
+
       const sourceNode = stepById.get(edge.source);
       result.data = {
         ...result.data,
         bulbAt: sourceNode?.type === 'agentNode' ? 'source' : 'target'
       };
-    }
+    } else {
+      // Flow Distribution for standard edges
+      const count = nodeOutgoingCounts.get(edge.source) || 0;
+      nodeOutgoingCounts.set(edge.source, count + 1);
 
-    // Handle decision node branching handles
-    if (
-      decisionIds.has(edge.source) &&
-      edge.label?.toLowerCase().includes('conditionally')
-    ) {
-      const idx = conditionalBranchIndex.get(edge.source) || 0;
-      conditionalBranchIndex.set(edge.source, idx + 1);
-      result.sourceHandle = idx === 0 ? 'bottom' : 'right';
-      result.label = idx === 0 ? 'YES' : 'NO / PARTIAL';
-      result.style = {
-        ...result.style,
-        stroke: idx === 0 ? '#10b981' : '#ef4444',
-        ...(idx === 1 ? { strokeDasharray: '5,5' } : {}),
-      };
-      result.markerEnd = {
-        type: MarkerType.ArrowClosed,
-        color: idx === 0 ? '#10b981' : '#ef4444',
-      };
-      result.labelStyle = {
-        fill: idx === 0 ? '#10b981' : '#ef4444',
-        fontWeight: 800,
-        fontSize: 10,
-      };
+      if (count === 0) result.sourceHandle = 'bottom';
+      else if (count === 1) result.sourceHandle = 'right';
+      else if (count === 2) result.sourceHandle = 'left';
     }
 
     return result;
@@ -302,7 +303,9 @@ function AgentNode({ data, targetPosition, sourcePosition }) {
           </ul>
         </div>
       )}
-      <Handle type="source" position={sourcePosition} className="w-3 h-3 !bg-slate-300 border-2 border-white" />
+      <Handle type="source" id="bottom" position={sourcePosition} className="w-3 h-3 !bg-slate-300 border-2 border-white" />
+      <Handle type="source" id="right" position={Position.Right} className="w-3 h-3 !bg-slate-300 border-2 border-white opacity-0" />
+      <Handle type="source" id="left" position={Position.Left} className="w-3 h-3 !bg-slate-300 border-2 border-white opacity-0" />
       <Handle
         type="source"
         position={sourcePosition}
@@ -341,9 +344,9 @@ function ProcessNode({ data, targetPosition, sourcePosition }) {
         style={{ backgroundColor: accentColor }}
       />
       <Handle type="target" position={targetPosition} className="w-3 h-3 !bg-slate-300 border-2 border-white" />
-      
+
       {hasAgenticPotential && (
-        <div 
+        <div
           className="absolute -top-3 -right-3 z-[100]"
           onMouseEnter={() => setShowTooltip(true)}
           onMouseLeave={() => setShowTooltip(false)}
@@ -354,12 +357,11 @@ function ProcessNode({ data, targetPosition, sourcePosition }) {
 
           {/* Rich Agent Box Popover - On Hover Preview */}
           <div
-            className={`absolute bottom-full right-0 mb-4 w-80 bg-white rounded-2xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.4)] border border-slate-200 overflow-hidden transition-all duration-500 pointer-events-none z-[110] origin-bottom-right ${
-              showTooltip ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-90 translate-y-4'
-            }`}
+            className={`absolute bottom-full right-0 mb-4 w-80 bg-white rounded-2xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.4)] border border-slate-200 overflow-hidden transition-all duration-500 pointer-events-none z-[110] origin-bottom-right ${showTooltip ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-90 translate-y-4'
+              }`}
           >
             {/* Gradient Header */}
-            <div 
+            <div
               className="text-white p-4 flex items-center gap-3"
               style={{
                 background: `linear-gradient(135deg, ${agenticInfo?.accentColor}, ${agenticInfo?.accentColor}dd)`
@@ -387,7 +389,7 @@ function ProcessNode({ data, targetPosition, sourcePosition }) {
                 ))}
               </ul>
             </div>
-            
+
             {/* Tooltip Arrow */}
             <div className="absolute top-full right-4 -mt-1 border-[8px] border-transparent border-t-white" />
           </div>
@@ -407,7 +409,9 @@ function ProcessNode({ data, targetPosition, sourcePosition }) {
           {data.label}
         </span>
       </div>
-      <Handle type="source" position={sourcePosition} className="w-3 h-3 !bg-slate-300 border-2 border-white" />
+      <Handle type="source" id="bottom" position={sourcePosition} className="w-3 h-3 !bg-slate-300 border-2 border-white" />
+      <Handle type="source" id="right" position={Position.Right} className="w-3 h-3 !bg-slate-300 border-2 border-white opacity-0" />
+      <Handle type="source" id="left" position={Position.Left} className="w-3 h-3 !bg-slate-300 border-2 border-white opacity-0" />
     </div>
   );
 }
@@ -430,7 +434,7 @@ function DecisionNode({ data, targetPosition }) {
       />
 
       <div className="relative z-10 text-center flex flex-col items-center pointer-events-auto">
-        <span className="text-[9px] font-black text-amber-500 mb-1 tracking-tighter">DECISION</span>
+
         <div className="text-xs font-bold uppercase tracking-wider text-amber-900 px-4 leading-tight max-w-[90px]">
           {data.label}
         </div>
@@ -498,6 +502,8 @@ function AgenticEdge({
 
   const bulbX = data?.bulbAt === 'source' ? sourceX : targetX;
   const bulbY = data?.bulbAt === 'source' ? sourceY : targetY;
+  const startLabelX = sourceX + (labelX - sourceX) * 0.4;
+  const startLabelY = sourceY + (labelY - sourceY) * 0.4;
 
   return (
     <>
@@ -514,7 +520,7 @@ function AgenticEdge({
           <div className="bg-white rounded-full p-1 shadow-md border-2 border-[#10b981] -translate-x-2">
             <Lightbulb
               size={20}
-              className="text-black "
+              className="text-[#10b981]"
             />
           </div>
         </div>
@@ -524,18 +530,18 @@ function AgenticEdge({
               position: 'absolute',
               transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
               pointerEvents: 'all',
-              backgroundColor: labelBgStyle?.fill || '#ffffff',
-              opacity: labelBgStyle?.fillOpacity || 0.9,
-              padding: '4px 8px',
-              borderRadius: '4px',
+              backgroundColor: '#ffffff',
+              opacity: 1,
+              padding: '2px 6px',
+              borderRadius: '2px',
               border: '1px solid #e2e8f0',
             }}
-            className="nodrag nopan shadow-sm font-bold"
+            className="nodrag nopan font-extrabold text-[10px] whitespace-nowrap z-[60]"
           >
             <span
               style={{
                 ...labelStyle,
-                color: labelStyle?.fill || '#000000',
+                color: '#10b981',
                 fill: undefined
               }}
             >
@@ -567,7 +573,7 @@ const initialEdges = [];
 function AgenticFlowContent({ suggestionId }) {
   const [flowData, setFlowData] = useState(null);
   const [openAgentIds, setOpenAgentIds] = useState(new Set());
-  
+
   const { nodes: layoutedNodes, edges: layoutedEdges } = useMemo(() => {
     if (!flowData) return { nodes: [], edges: [] };
     return transformFlowData(flowData);
@@ -587,9 +593,9 @@ function AgenticFlowContent({ suggestionId }) {
     if (!layoutedNodes.length) return { finalNodes: [], finalEdges: [] };
     const nodes = layoutedNodes.map(node => {
       if (node.type === 'agentNode') {
-        const edgeToThisAgent = layoutedEdges.find(e => 
-          (e.source === node.id || e.target === node.id) && 
-          (e.label?.toLowerCase().includes('automates') || e.label?.toLowerCase().includes('agentic'))
+        const edgeToThisAgent = layoutedEdges.find(e =>
+          (e.source === node.id || e.target === node.id) &&
+          isAgenticEdgeLabel(e.label || '')
         );
         const processId = edgeToThisAgent ? (edgeToThisAgent.source === node.id ? edgeToThisAgent.target : edgeToThisAgent.source) : null;
         return {
@@ -597,7 +603,7 @@ function AgenticFlowContent({ suggestionId }) {
           hidden: !openAgentIds.has(processId)
         };
       }
-      
+
       if (node.type === 'processNode') {
         return {
           ...node,
@@ -608,15 +614,18 @@ function AgenticFlowContent({ suggestionId }) {
           }
         };
       }
-      
+
       return node;
     });
 
     const edges = layoutedEdges.map(edge => {
-      const isAgentic = (edge.label || '').toLowerCase().includes('automates') ||
-                         (edge.label || '').toLowerCase().includes('agentic');
+      const isAgentic = isAgenticEdgeLabel(edge.label || '');
       if (isAgentic) {
-        const processId = layoutedNodes.find(n => n.id === edge.source && n.type === 'processNode') ? edge.source : edge.target;
+        // Find the owner node (the non-agent side)
+        const sourceNode = layoutedNodes.find(n => n.id === edge.source);
+        const targetNode = layoutedNodes.find(n => n.id === edge.target);
+
+        const processId = sourceNode?.type !== 'agentNode' ? edge.source : edge.target;
         return {
           ...edge,
           hidden: !openAgentIds.has(processId)
@@ -835,14 +844,14 @@ function AgenticFlowContent({ suggestionId }) {
               </div>
 
               {/* Edge/Connection Info */}
-              <div className="flex flex-col items-center gap-1.5">
-                <div className="h-0.5 w-12 bg-gradient-to-r from-transparent via-brand-500 to-transparent relative">
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-brand-500 rounded-full shadow-[0_0_10px_rgba(99,102,241,0.6)] animate-pulse"></div>
-                </div>
+              <div className="flex flex-col items-center gap-2">
                 <div className="bg-brand-50/50 px-2 py-0.5 rounded-full border border-brand-100 shadow-sm">
                   <span className="text-[9px] font-black text-black uppercase tracking-[0.1em] whitespace-nowrap">
                     {selectedEdgeInfo.label}
                   </span>
+                </div>
+                <div className="h-0.5 w-12 bg-gradient-to-r from-transparent via-brand-500 to-transparent relative">
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-brand-500 rounded-full shadow-[0_0_10px_rgba(99,102,241,0.6)] animate-pulse"></div>
                 </div>
               </div>
 

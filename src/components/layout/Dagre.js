@@ -5,7 +5,7 @@ export const getLayoutedElements = (nodes, edges, direction = 'TB') => {
   dagreGraph.setDefaultEdgeLabel(() => ({}));
 
   const isHorizontal = direction === 'LR';
-  
+
   // Custom node dimensions based on type
   const nodeDimensions = {
     processNode: { width: 280, height: 80 },
@@ -14,7 +14,7 @@ export const getLayoutedElements = (nodes, edges, direction = 'TB') => {
     agentGroupNode: { width: 500, height: 200 } // Minimums for groups
   };
 
-  dagreGraph.setGraph({ 
+  dagreGraph.setGraph({
     rankdir: direction,
     ranksep: 120, // Vertical distance between ranks
     nodesep: 80,  // Horizontal distance between nodes in the same rank
@@ -53,9 +53,9 @@ export const getLayoutedElements = (nodes, edges, direction = 'TB') => {
     // If it's a parent node, its width/height is calculated by Dagre
     if (dagreGraph.children(node.id).length > 0) {
       // Add padding for group headers/spacing
-      res.style = { 
-        ...node.style, 
-        width: nodeData.width + 40, 
+      res.style = {
+        ...node.style,
+        width: nodeData.width + 40,
         height: nodeData.height + 60 // More height for the header
       };
     }

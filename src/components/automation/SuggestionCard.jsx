@@ -43,8 +43,8 @@ export default function SuggestionCard({ suggestion, index, hideChip }) {
       ]
     }
     sessionStorage.setItem(`suggestion_${id}`, JSON.stringify(details))
-    const baseUrl = import.meta.env.BASE_URL || '/'
-    window.open(`${baseUrl}suggestion/${id}`.replace(/\/\//g, '/'), '_blank')
+    const url = `${import.meta.env.BASE_URL}suggestion/${id}`
+    window.open(url, '_blank')
   }
 
   return (
