@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, useRef } from 'react';
+import React, { useCallback, useEffect, useState, useRef,useMemo } from 'react';
 import ReactFlow, {
   Controls,
   Background,
@@ -16,7 +16,7 @@ import ReactFlow, {
   EdgeLabelRenderer
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { UserCircle, XCircle, Database, Layers, BarChart, CheckSquare, Archive, RefreshCw, ShoppingCart, CheckCircle, Loader2, AlertCircle, Maximize2, Minimize2, Lightbulb } from 'lucide-react';
+import { UserCircle, XCircle, Database, Layers, BarChart, CheckSquare, Archive, RefreshCw, ShoppingCart, CheckCircle, Loader2, AlertCircle, Maximize2, Minimize2, Lightbulb, Bot, Workflow, GitBranch, WorkflowIcon, Cog } from 'lucide-react';
 import { getProcessFlow } from '../../services/api';
 import { getLayoutedElements } from '../layout/Dagre';
 
@@ -68,7 +68,7 @@ function getEdgeStyle(label = '') {
       stroke: '#10b981',
       strokeWidth: 2.5,
       strokeDasharray: 'none',
-      labelColor: '#000000', 
+      labelColor: '#000000',
       animated: true,
     };
   }
@@ -97,13 +97,12 @@ function transformFlowData(apiData) {
   const rawNodes = Array.isArray(apiData?.nodes) ? apiData.nodes : [];
   const rawEdges = Array.isArray(apiData?.edges) ? apiData.edges : [];
 
+  const stepById = new Map(rawNodes.map((n) => [n.id, n]));
   const decisionIds = new Set(
     rawNodes
       .filter((n) => (n.data?.label || '').toLowerCase().includes('decision'))
       .map((n) => n.id)
   );
-
-  const stepById = new Map(rawNodes.map((n) => [n.id, n]));
 
   // --- Map Nodes ---
   const mappedNodes = rawNodes.map((node) => {
@@ -119,35 +118,42 @@ function transformFlowData(apiData) {
     }
 
     if (node.type === 'agentNode') {
-      const edgeFromAgent = rawEdges.find(
-        (e) => e.source === node.id && stepById.get(e.target)
-      );
-      const targetStep = edgeFromAgent ? stepById.get(edgeFromAgent.target) : null;
-      const targetAccent = node.data?.accentColor
-        || (targetStep ? getStepAccent(targetStep.data?.stepType) : '#10b981');
-
-      const rawTasks = (node.data?.tasks || []).filter(Boolean);
-      const truncatedTasks = rawTasks.length
-        ? rawTasks.map((t) =>
-          t.length > 80 ? t.slice(0, 80) + '…' : t
-        )
-        : ['Automates related process steps'];
-
+      const rawTasks = node.data?.tasks || (node.data?.description ? [node.data.description] : ['Automates related process steps']);
       return {
         ...node,
         data: {
           ...node.data,
           icon: ICON_MAP[node.data?.icon] || UserCircle,
           title: node.data?.title || 'Automation Agent',
-          tasks: truncatedTasks,
-          accentColor: '#10b981', 
+          tasks: rawTasks,
+          accentColor: node.data?.accentColor || '#10b981',
         },
       };
     }
 
-    // Process or Decision Nodes
     const isDecision = decisionIds.has(node.id);
     const accent = getStepAccent(node.data?.stepType);
+
+    // Find agentic info for tooltips
+    const edgeToAgent = rawEdges.find(e => 
+      (e.source === node.id || e.target === node.id) && 
+      (e.label?.toLowerCase().includes('automates') || e.label?.toLowerCase().includes('agentic'))
+    );
+    let agenticInfo = null;
+    if (edgeToAgent) {
+      const agentId = edgeToAgent.source === node.id ? edgeToAgent.target : edgeToAgent.source;
+      const agentNode = rawNodes.find(n => n.id === agentId && n.type === 'agentNode');
+      if (agentNode) {
+        agenticInfo = {
+          title: agentNode.data?.title || 'Automation Agent',
+          tasks: agentNode.data?.tasks || (agentNode.data?.description ? [agentNode.data.description] : ['Automates related process steps']),
+          icon: ICON_MAP[agentNode.data?.icon] || UserCircle,
+          label: toDisplayEdgeLabel(edgeToAgent.label),
+          accentColor: agentNode.data?.accentColor || '#10b981'
+        };
+      }
+    }
+
     return {
       ...node,
       type: isDecision ? 'decisionNode' : 'processNode',
@@ -159,9 +165,10 @@ function transformFlowData(apiData) {
           label: node.data?.label || 'Process Step',
           icon: ICON_MAP[node.data?.icon] || Database,
           accentColor: accent,
+          agenticInfo: agenticInfo,
+          hasAgenticPotential: !!agenticInfo
         },
     };
-
   });
 
   // --- Map Edges ---
@@ -185,25 +192,24 @@ function transformFlowData(apiData) {
         stroke: styleMeta.stroke,
         strokeWidth: styleMeta.strokeWidth,
         strokeDasharray: styleMeta.strokeDasharray || 'none',
+        zIndex: 10
       },
     };
 
-    // Detect if this is an agentic/automated connection
     const isAgentic = (edge.label || '').toLowerCase().includes('automates') ||
       (edge.label || '').toLowerCase().includes('agentic');
 
     if (isAgentic) {
       result.type = 'agenticEdge';
-      result.markerEnd = undefined; 
-    }
-
-  
-    if (
-      rawNodes.find(n => n.id === edge.source && n.type === 'agentNode') &&
-      rawNodes.find(n => n.id === edge.target && (n.type === 'processNode' || n.id?.startsWith('step-')))
-    ) {
-      result.source = edge.target;
-      result.target = edge.source;
+      result.markerEnd = undefined;
+      result.sourceHandle = 'agentic-out';
+      result.targetHandle = 'agentic-in';
+      
+      const sourceNode = stepById.get(edge.source);
+      result.data = {
+        ...result.data,
+        bulbAt: sourceNode?.type === 'agentNode' ? 'source' : 'target'
+      };
     }
 
     // Handle decision node branching handles
@@ -259,6 +265,15 @@ function AgentNode({ data, targetPosition, sourcePosition }) {
       }}
     >
       <Handle type="target" position={targetPosition} className="w-3 h-3 !bg-slate-300 border-2 border-white" />
+      <Handle
+        type="target"
+        position={targetPosition}
+        id="agentic-in"
+        style={{
+          [targetPosition === Position.Left || targetPosition === Position.Right ? 'top' : 'left']: '70%',
+          opacity: 0
+        }}
+      />
       <div
         className="text-white p-4 flex items-center gap-3"
         style={{
@@ -288,19 +303,37 @@ function AgentNode({ data, targetPosition, sourcePosition }) {
         </div>
       )}
       <Handle type="source" position={sourcePosition} className="w-3 h-3 !bg-slate-300 border-2 border-white" />
+      <Handle
+        type="source"
+        position={sourcePosition}
+        id="agentic-out"
+        style={{
+          [sourcePosition === Position.Left || sourcePosition === Position.Right ? 'top' : 'left']: '70%',
+          opacity: 0
+        }}
+      />
     </div>
   );
 }
 
 function ProcessNode({ data, targetPosition, sourcePosition }) {
+  const [showTooltip, setShowTooltip] = useState(false);
   const accentColor = data.accentColor || '#10b981';
+  const { hasAgenticPotential, isOpen, toggleAgent, agenticInfo } = data;
+
   return (
     <div
-      className={`bg-white border-2 rounded-2xl shadow-xl p-5 flex items-center gap-4 min-w-[260px] max-w-[320px] transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 group relative overflow-hidden ${data.isHighlighted ? 'ring-4 ring-offset-2 ring-brand-500 scale-105 shadow-[0_30px_50px_-15px_rgba(0,0,0,0.3)]' : ''
+      className={`bg-white border-2 rounded-2xl shadow-xl p-5 flex items-center gap-4 min-w-[260px] max-w-[320px] transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 group relative cursor-pointer ${data.isHighlighted ? 'ring-4 ring-offset-2 ring-brand-500 scale-105 shadow-[0_30px_50px_-15px_rgba(0,0,0,0.3)]' : ''
         } ${data.isDimmed ? 'opacity-30 grayscale-[30%] blur-[0.5px]' : 'opacity-100'}`}
       style={{
         borderColor: data.isHighlighted ? accentColor : `${accentColor}30`,
         transition: 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+      }}
+      onClick={(e) => {
+        if (hasAgenticPotential) {
+          e.stopPropagation();
+          toggleAgent?.();
+        }
       }}
     >
       <div
@@ -308,6 +341,59 @@ function ProcessNode({ data, targetPosition, sourcePosition }) {
         style={{ backgroundColor: accentColor }}
       />
       <Handle type="target" position={targetPosition} className="w-3 h-3 !bg-slate-300 border-2 border-white" />
+      
+      {hasAgenticPotential && (
+        <div 
+          className="absolute -top-3 -right-3 z-[100]"
+          onMouseEnter={() => setShowTooltip(true)}
+          onMouseLeave={() => setShowTooltip(false)}
+        >
+          <div className={`bg-white rounded-full p-2 shadow-xl border-2 border-emerald-500 transition-all duration-500 hover:scale-110 ${isOpen ? 'rotate-90 bg-emerald-50 scale-110' : ''}`}>
+            <GitBranch size={20} className="text-emerald-600" />
+          </div>
+
+          {/* Rich Agent Box Popover - On Hover Preview */}
+          <div
+            className={`absolute bottom-full right-0 mb-4 w-80 bg-white rounded-2xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.4)] border border-slate-200 overflow-hidden transition-all duration-500 pointer-events-none z-[110] origin-bottom-right ${
+              showTooltip ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-90 translate-y-4'
+            }`}
+          >
+            {/* Gradient Header */}
+            <div 
+              className="text-white p-4 flex items-center gap-3"
+              style={{
+                background: `linear-gradient(135deg, ${agenticInfo?.accentColor}, ${agenticInfo?.accentColor}dd)`
+              }}
+            >
+              <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md">
+                {agenticInfo?.icon && <agenticInfo.icon size={20} className="stroke-[2.5]" />}
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black uppercase tracking-widest opacity-80">{agenticInfo?.label}</span>
+                <span className="font-extrabold text-sm tracking-tight">{agenticInfo?.title}</span>
+              </div>
+            </div>
+
+            {/* Content Area - Task List */}
+            <div className="p-4 bg-slate-50/50 backdrop-blur-sm">
+              <ul className="space-y-3">
+                {agenticInfo?.tasks.map((task, i) => (
+                  <li key={i} className="flex items-start gap-3 group/item">
+                    <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                    <span className="text-[11px] font-semibold text-slate-600 leading-relaxed group-hover/item:text-slate-900 transition-colors">
+                      {task}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            
+            {/* Tooltip Arrow */}
+            <div className="absolute top-full right-4 -mt-1 border-[8px] border-transparent border-t-white" />
+          </div>
+        </div>
+      )}
+
       {data.icon && (
         <div
           className="p-2.5 rounded-xl bg-slate-50 shadow-inner group-hover:scale-110 transition-transform duration-300"
@@ -333,6 +419,15 @@ function DecisionNode({ data, targetPosition }) {
       <div className={`absolute inset-0 border border-amber-500/20 transform rotate-45 rounded-2xl scale-[1.12] ${data.isHighlighted ? 'border-amber-500 opacity-100 animate-pulse' : ''}`}></div>
 
       <Handle type="target" position={targetPosition} className="w-3 h-3 z-20 !bg-amber-500 border-2 border-white" />
+      <Handle
+        type="target"
+        position={targetPosition}
+        id="agentic-in"
+        style={{
+          [targetPosition === Position.Left || targetPosition === Position.Right ? 'top' : 'left']: '70%',
+          opacity: 0
+        }}
+      />
 
       <div className="relative z-10 text-center flex flex-col items-center pointer-events-auto">
         <span className="text-[9px] font-black text-amber-500 mb-1 tracking-tighter">DECISION</span>
@@ -370,6 +465,8 @@ function AgentGroupNode({ data }) {
         </div>
         <span className="uppercase tracking-[0.1em]">{data.label}</span>
       </div>
+      <Handle type="target" position={Position.Top} id="agentic-in" style={{ left: '70%', opacity: 0 }} />
+      <Handle type="source" position={Position.Bottom} id="agentic-out" style={{ left: '70%', opacity: 0 }} />
     </div>
   );
 }
@@ -387,7 +484,8 @@ function AgenticEdge({
   label,
   labelStyle,
   labelBgStyle,
-  animated
+  animated,
+  data
 }) {
   const [edgePath, labelX, labelY] = getSmoothStepPath({
     sourceX,
@@ -398,6 +496,9 @@ function AgenticEdge({
     targetY,
   });
 
+  const bulbX = data?.bulbAt === 'source' ? sourceX : targetX;
+  const bulbY = data?.bulbAt === 'source' ? sourceY : targetY;
+
   return (
     <>
       <BaseEdge path={edgePath} style={style} />
@@ -405,7 +506,7 @@ function AgenticEdge({
         <div
           style={{
             position: 'absolute',
-            transform: `translate(-50%, -50%) translate(${targetX}px,${targetY}px)`,
+            transform: `translate(-50%, -50%) translate(${bulbX}px,${bulbY}px)`,
             pointerEvents: 'none',
           }}
           className="z-50"
@@ -431,12 +532,12 @@ function AgenticEdge({
             }}
             className="nodrag nopan shadow-sm font-bold"
           >
-            <span 
-              style={{ 
-                ...labelStyle, 
+            <span
+              style={{
+                ...labelStyle,
                 color: labelStyle?.fill || '#000000',
-                fill: undefined 
-              }} 
+                fill: undefined
+              }}
             >
               {label}
             </span>
@@ -464,8 +565,79 @@ const initialNodes = [];
 const initialEdges = [];
 
 function AgenticFlowContent({ suggestionId }) {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [flowData, setFlowData] = useState(null);
+  const [openAgentIds, setOpenAgentIds] = useState(new Set());
+  
+  const { nodes: layoutedNodes, edges: layoutedEdges } = useMemo(() => {
+    if (!flowData) return { nodes: [], edges: [] };
+    return transformFlowData(flowData);
+  }, [flowData]);
+
+  const toggleAgent = useCallback((processId) => {
+    setOpenAgentIds(prev => {
+      const next = new Set(prev);
+      if (next.has(processId)) next.delete(processId);
+      else next.add(processId);
+      return next;
+    });
+  }, []);
+
+  // Compute final nodes/edges with the 'hidden' property
+  const { finalNodes, finalEdges } = useMemo(() => {
+    if (!layoutedNodes.length) return { finalNodes: [], finalEdges: [] };
+    const nodes = layoutedNodes.map(node => {
+      if (node.type === 'agentNode') {
+        const edgeToThisAgent = layoutedEdges.find(e => 
+          (e.source === node.id || e.target === node.id) && 
+          (e.label?.toLowerCase().includes('automates') || e.label?.toLowerCase().includes('agentic'))
+        );
+        const processId = edgeToThisAgent ? (edgeToThisAgent.source === node.id ? edgeToThisAgent.target : edgeToThisAgent.source) : null;
+        return {
+          ...node,
+          hidden: !openAgentIds.has(processId)
+        };
+      }
+      
+      if (node.type === 'processNode') {
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            isOpen: openAgentIds.has(node.id),
+            toggleAgent: () => toggleAgent(node.id)
+          }
+        };
+      }
+      
+      return node;
+    });
+
+    const edges = layoutedEdges.map(edge => {
+      const isAgentic = (edge.label || '').toLowerCase().includes('automates') ||
+                         (edge.label || '').toLowerCase().includes('agentic');
+      if (isAgentic) {
+        const processId = layoutedNodes.find(n => n.id === edge.source && n.type === 'processNode') ? edge.source : edge.target;
+        return {
+          ...edge,
+          hidden: !openAgentIds.has(processId)
+        };
+      }
+      return edge;
+    });
+
+    return { finalNodes: nodes, finalEdges: edges };
+  }, [layoutedNodes, layoutedEdges, openAgentIds, toggleAgent]);
+
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+
+  useEffect(() => {
+    if (finalNodes.length) {
+      setNodes(finalNodes);
+      setEdges(finalEdges);
+    }
+  }, [finalNodes, finalEdges, setNodes, setEdges]);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [highlightedNodes, setHighlightedNodes] = useState([]);
@@ -499,7 +671,6 @@ function AgenticFlowContent({ suggestionId }) {
 
   const hasFetched = useRef(false);
 
-
   useEffect(() => {
     if (!suggestionId || hasFetched.current) return;
 
@@ -510,10 +681,7 @@ function AgenticFlowContent({ suggestionId }) {
       setError(null);
       try {
         const data = await getProcessFlow(suggestionId);
-
-        const transformed = transformFlowData(data);
-        setNodes(transformed.nodes);
-        setEdges(transformed.edges);
+        setFlowData(data);
       } catch (err) {
         console.error('Failed to fetch flow:', err);
         setError(err.message);
@@ -523,7 +691,7 @@ function AgenticFlowContent({ suggestionId }) {
     };
 
     fetchFlow();
-  }, [suggestionId, fitView]);
+  }, [suggestionId]);
 
 
 
