@@ -681,9 +681,9 @@ function AgenticFlowContent({ suggestionId }) {
   const hasFetched = useRef(false);
 
   useEffect(() => {
-    if (!suggestionId || hasFetched.current) return;
+    if (!suggestionId) return;
 
-    hasFetched.current = true;
+  
 
     const fetchFlow = async () => {
       setLoading(true);
