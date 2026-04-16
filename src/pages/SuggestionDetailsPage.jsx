@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState,useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Cpu, CheckCircle2, ChevronDown } from 'lucide-react'
 import StepCard from '../components/analysis/StepCard'
@@ -56,10 +56,13 @@ export default function SuggestionDetailsPage() {
     return () => { }
   }, [id])
 
+  const lastArchFetchedId = useRef(null)
+
   // Fetch architecture data from the API
   useEffect(() => {
-    if (!id) return
+    if (!id || lastArchFetchedId.current === id) return
     setArchLoading(true)
+    lastArchFetchedId.current = id
     getAutomationArchitecture(id)
       .then(json => {
         setArchitectureData(json?.agent_cluster_architecture ?? null)
@@ -69,6 +72,7 @@ export default function SuggestionDetailsPage() {
         console.warn('Architecture API fetch failed:', err)
         setArchitectureData(null)
         setArchError(err.message || 'Failed to load architecture data')
+        lastArchFetchedId.current = null // Allow retry on error
       })
       .finally(() => setArchLoading(false))
   }, [id])

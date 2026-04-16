@@ -46,7 +46,11 @@ function isAgenticEdgeLabel(label = '') {
 }
 
 function getStepAccent(stepType = '') {
-  return STEP_TYPE_ACCENT[stepType.toLowerCase()] || '#10b981';
+  const type = stepType.toLowerCase();
+  if (type.includes('agentic')) return STEP_TYPE_ACCENT['higher agentic intervention'];
+  if (type.includes('human') && type.includes('ai')) return STEP_TYPE_ACCENT['human + ai intervention'];
+  if (type.includes('human')) return STEP_TYPE_ACCENT['higher human intervention'];
+  return '#10b981';
 }
 
 function toDisplayEdgeLabel(label = '') {
@@ -100,44 +104,57 @@ function getEdgeStyle(label = '') {
 }
 
 function transformFlowData(apiData) {
-  const rawNodes = Array.isArray(apiData?.nodes) ? apiData.nodes : [];
-  const rawEdges = Array.isArray(apiData?.edges) ? apiData.edges : [];
+  // Combine everything to be array-agnostic
+  const allElements = [
+    ...(Array.isArray(apiData?.nodes) ? apiData.nodes : []),
+    ...(Array.isArray(apiData?.edges) ? apiData.edges : [])
+  ];
+
+  // Separate by structure, not by array home
+  const rawNodes = allElements.filter(el => el && !el.source && !el.target);
+  const rawEdges = allElements.filter(el => el && el.source && el.target);
 
   const stepById = new Map(rawNodes.map((n) => [n.id, n]));
   const decisionIds = new Set(
     rawNodes
-      .filter((n) =>
-        (n.data?.label || '').toLowerCase().includes('decision') ||
-        (n.data?.label || '').toLowerCase().includes('?') ||
-        n.id.toLowerCase().includes('decision') ||
-        n.type === 'decisionNode'
-      )
+      .filter((n) => {
+        const label = (n.data?.label || '').toLowerCase();
+        const type = (n.type || '').toLowerCase();
+        return label.includes('decision') || label.includes('?') || type.includes('decision');
+      })
       .map((n) => n.id)
   );
 
   // --- Map Nodes ---
   const mappedNodes = rawNodes.map((node) => {
-    if (node.type === 'agentGroupNode') {
+    const nodeType = (node.type || '').toLowerCase();
+    const isAgentId = node.id?.toString().toLowerCase().includes('agent');
+    
+    // Automatic Agent Normalization
+    if (nodeType.includes('agentnode') || nodeType.includes('bot') || isAgentId) {
+      const rawTasks = node.data?.tasks || (node.data?.description ? [node.data.description] : ['Automates related process steps']);
       return {
         ...node,
+        type: 'agentNode',
+        position: node.position || { x: 0, y: 0 }, // Fallback position
         data: {
           ...node.data,
-          icon: ICON_MAP[node.data?.icon] || Database,
+          icon: ICON_MAP[node.data?.icon] || Bot,
+          title: node.data?.title || (nodeType.includes('group') ? 'Agent Group' : 'Automation Agent'),
+          tasks: rawTasks,
           accentColor: node.data?.accentColor || '#10b981',
         },
       };
     }
 
-    if (node.type === 'agentNode') {
-      const rawTasks = node.data?.tasks || (node.data?.description ? [node.data.description] : ['Automates related process steps']);
+    if (nodeType.includes('agentgroup')) {
       return {
         ...node,
+        type: 'agentGroupNode',
         data: {
           ...node.data,
-          icon: ICON_MAP[node.data?.icon] || UserCircle,
-          title: node.data?.title || 'Automation Agent',
-          tasks: rawTasks,
-          accentColor: node.data?.accentColor || '#10b981',
+          icon: ICON_MAP[node.data?.icon] || Layers,
+          accentColor: node.data?.accentColor || '#6366f1',
         },
       };
     }
@@ -176,16 +193,14 @@ function transformFlowData(apiData) {
       ...node,
       type: isDecision ? 'decisionNode' : 'processNode',
       extent: node.parentNode ? 'parent' : undefined,
-      data: isDecision
-        ? { label: node.data?.label || 'Decision' }
-        : {
-          ...node.data,
-          label: node.data?.label || 'Process Step',
-          icon: ICON_MAP[node.data?.icon] || Database,
-          accentColor: accent,
-          agenticInfo: agenticInfo,
-          hasAgenticPotential: !!agenticInfo
-        },
+      data: {
+        ...node.data,
+        label: node.data?.label || (isDecision ? 'Decision' : 'Process Step'),
+        icon: ICON_MAP[node.data?.icon] || (isDecision ? GitBranch : Database),
+        accentColor: accent,
+        agenticInfo: agenticInfo,
+        hasAgenticPotential: !!agenticInfo
+      },
     };
   });
 
@@ -604,7 +619,7 @@ function AgenticFlowContent({ suggestionId }) {
         };
       }
 
-      if (node.type === 'processNode') {
+      if (node.type === 'processNode' || node.type === 'decisionNode') {
         return {
           ...node,
           data: {
@@ -678,22 +693,23 @@ function AgenticFlowContent({ suggestionId }) {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, [fitView]);
 
-  const hasFetched = useRef(false);
+
+  const lastFetchedId = useRef(null);
 
   useEffect(() => {
-    if (!suggestionId) return;
-
-  
+    if (!suggestionId || lastFetchedId.current === suggestionId) return;
 
     const fetchFlow = async () => {
       setLoading(true);
       setError(null);
+      lastFetchedId.current = suggestionId;
       try {
         const data = await getProcessFlow(suggestionId);
         setFlowData(data);
       } catch (err) {
         console.error('Failed to fetch flow:', err);
         setError(err.message);
+        lastFetchedId.current = null; // Allow retry on error
       } finally {
         setLoading(false);
       }
