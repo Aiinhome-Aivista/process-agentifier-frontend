@@ -44,12 +44,45 @@ import {
     Key,
     Lock,
     Globe,
-        HardDrive,
-        ScrollText,
-        Loader2,
-        AlertCircle
+    HardDrive,
+    ScrollText,
+    Loader2,
+    AlertCircle,
+    CheckSquare,
+    CheckCircle,
 } from 'lucide-react';
 import { getAutomationArchitecture } from '../../services/api';
+import { getLayoutedElements } from '../layout/Dagre';
+
+// --- Icon Mapping (Common across components) ---
+const ICON_MAP = {
+    Database,
+    Server,
+    Zap,
+    Users,
+    ShieldCheck,
+    CheckSquare,
+    Cloud,
+    Bot,
+    FileText,
+    History,
+    Key,
+    Lock,
+    Globe,
+    Search,
+    Mail,
+    Webhook
+};
+
+function getEdgeStyle(label = '') {
+    // All edges are solid black as per user request
+    return {
+        stroke: '#000000',
+        strokeWidth: 2,
+        labelColor: '#000000',
+        animated: false,
+    };
+}
 
 // --- Custom Node Components ---
 
@@ -82,9 +115,9 @@ const ConnectorNode = ({ data }) => {
                 <div className={`p-2 rounded-lg bg-white shadow-sm ring-1 ring-slate-100`}>
                     <Icon size={20} className={colors[color]?.split(' ')[2]} />
                 </div>
-                <h4 className="font-black text-[11px] uppercase tracking-wider text-slate-900 leading-none">{title}</h4>
+                <h4 className="font-black text-base uppercase tracking-wider text-slate-900 leading-none">{title}</h4>
             </div>
-            <p className="text-[9px] font-medium text-slate-500 leading-relaxed px-1">
+            <p className="text-base font-medium text-slate-500 leading-relaxed px-1">
                 {description}
             </p>
             <Handle type="source" position={Position.Bottom} className="!w-2 !h-2 !bg-slate-300" />
@@ -95,16 +128,16 @@ const ConnectorNode = ({ data }) => {
 
 
 const AgentNode = ({ data }) => {
-    const { title, description, subItems = [] } = data;
+    const { title, description, subItems = [], icon: Icon = Bot } = data;
     return (
-        <div className="bg-white rounded-2xl border-2 border-slate-200 p-4 shadow-lg min-w-[240px] hover:border-blue-400 transition-colors group">
+        <div className="bg-white rounded-2xl border-2 border-slate-200 p-4 shadow-lg min-w-[240px] hover:border-brand-500 transition-all group">
             <div className="flex items-start gap-4 mb-3">
-                <div className="p-3 bg-slate-50 rounded-xl group-hover:bg-blue-50 transition-colors">
-                    <Bot className="text-slate-700 group-hover:text-blue-600" size={24} />
+                <div className="p-3 bg-slate-50 rounded-xl group-hover:bg-brand-50 transition-colors">
+                    <Icon className="text-slate-700 group-hover:text-brand-600" size={24} />
                 </div>
                 <div className="text-left">
-                    <h5 className="font-black text-xs uppercase text-slate-900 leading-tight mb-1">{title}</h5>
-                    <p className="text-[9px] text-slate-500 font-semibold leading-relaxed">{description}</p>
+                    <h5 className="font-black text-base uppercase text-slate-900 leading-tight mb-1 tracking-tight">{title}</h5>
+                    <p className="text-base text-slate-500 font-medium leading-relaxed">{description}</p>
                 </div>
             </div>
             {subItems.length > 0 && (
@@ -112,15 +145,33 @@ const AgentNode = ({ data }) => {
                     {subItems.map((item, i) => (
                         <div key={i} className="flex items-center gap-2 bg-slate-50/50 p-1.5 rounded-lg border border-slate-100">
                             {item.icon && <item.icon size={12} className="text-slate-400" />}
-                            <span className="text-[8px] font-black text-slate-600 uppercase tracking-tight">{item.label}</span>
+                            <span className="text-base font-black text-slate-600 uppercase tracking-tight">{item.label}</span>
                         </div>
                     ))}
                 </div>
             )}
             <Handle type="target" position={Position.Left} className="!w-2 !h-2 !bg-slate-300" />
             <Handle type="source" position={Position.Right} className="!w-2 !h-2 !bg-slate-300" />
-            <Handle type="target" position={Position.Top} className="!w-2 !h-2 !bg-slate-300" />
-            <Handle type="source" position={Position.Bottom} className="!w-2 !h-2 !bg-slate-300" />
+        </div>
+    );
+};
+
+const OrchestratorNode = ({ data }) => {
+    const { title, description } = data;
+    return (
+        <div className="bg-slate-900 rounded-2xl border-2 border-slate-700 p-5 shadow-2xl min-w-[240px] relative group overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                <Zap size={40} className="text-brand-400" />
+            </div>
+            <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 bg-brand-500/20 rounded-lg border border-brand-500/30">
+                    <Zap size={20} className="text-brand-400" />
+                </div>
+                <h5 className="font-black text-base uppercase text-white tracking-widest">{title}</h5>
+            </div>
+            <p className="text-base text-slate-400 font-medium leading-relaxed">{description}</p>
+            <Handle type="target" position={Position.Left} className="!w-2 !h-2 !bg-slate-500" />
+            <Handle type="source" position={Position.Right} className="!w-2 !h-2 !bg-slate-500" />
         </div>
     );
 };
@@ -130,11 +181,11 @@ const DataNode = ({ data }) => {
     return (
         <div className="bg-white rounded-2xl border-2 border-slate-200 p-4 shadow-lg flex items-center gap-4 min-w-[200px] group transition-all hover:scale-105">
             <div className="p-3 bg-blue-50 rounded-xl">
-                 <Icon className="text-blue-600" size={24} />
+                <Icon className="text-blue-600" size={24} />
             </div>
             <div className="text-left">
-                <h5 className="font-black text-xs uppercase text-slate-900 leading-tight mb-0.5">{title}</h5>
-                <p className="text-[9px] text-slate-500 font-semibold uppercase tracking-tighter">{description}</p>
+                <h5 className="font-black text-base uppercase text-slate-900 leading-tight mb-0.5 tracking-tight">{title}</h5>
+                <p className="text-base text-slate-500 font-semibold uppercase tracking-tighter">{description}</p>
             </div>
             <Handle type="target" position={Position.Left} className="!w-2 !h-2 !bg-slate-300" />
             <Handle type="source" position={Position.Right} className="!w-2 !h-2 !bg-slate-300" />
@@ -183,7 +234,7 @@ const SharedContextNode = ({ data }) => {
                     <div key={i} className="bg-white border border-emerald-50 p-2.5 rounded-xl flex items-center gap-3 shadow-sm">
                         <div className={`w-2 h-2 rounded-full ${item.dbType === 'vector' ? 'bg-indigo-500' : 'bg-emerald-500'}`} />
                         <div className="text-left leading-none">
-                            <h5 className="text-[9px] font-black uppercase text-slate-900 mb-0.5">{item.label}</h5>
+                            <h5 className="text-base font-black uppercase text-slate-900 mb-0.5">{item.label}</h5>
                             <p className="text-[8px] text-slate-400 font-bold">{item.desc}</p>
                         </div>
                     </div>
@@ -209,7 +260,7 @@ const GroupFrame = ({ data }) => {
 const nodeTypes = {
     layer: LayerNode,
     connector: ConnectorNode,
-    orchestrator: OrchestratorNode,
+
     agent: AgentNode,
     data: DataNode,
     output: OutputCardNode,
@@ -235,12 +286,14 @@ function ArchitectureFlowContent({ suggestionId }) {
             const label = node.data?.label || node.data?.title || 'Unknown';
             const description = node.data?.description || '';
 
-            // Map Orchestrator
-            if (id.includes('orchestrator') || type === 'orchestrator') {
+            if (id.includes('orchestrator') || type === 'orchestrator' || type === 'system' && id.includes('orchestrator')) {
                 return {
                     ...node,
                     type: 'orchestrator',
-                    data: { ...node.data, label, description }
+                    data: {
+                        title: label,
+                        description
+                    }
                 };
             }
 
@@ -252,14 +305,13 @@ function ArchitectureFlowContent({ suggestionId }) {
                     data: {
                         title: label,
                         description,
-                        icon: id.includes('erp') ? Server : (id.includes('db') || id.includes('log')) ? Database : Cloud,
+                        icon: ICON_MAP[node.data?.icon] || (id.includes('erp') ? Server : (id.includes('db') || id.includes('log') || id.includes('dat')) ? Database : id.includes('gateway') ? Zap : Cloud),
                         color: id.includes('gateway') ? 'cyan' : 'indigo'
                     }
                 };
             }
 
-            // Map Human -> Agent (with Person icon if possible, but AgentNode uses Bot)
-            // We'll stick to agent but maybe we can customize the icon later if needed
+            // Map Human -> Agent (with User icon)
             if (type === 'human') {
                 return {
                     ...node,
@@ -267,7 +319,8 @@ function ArchitectureFlowContent({ suggestionId }) {
                     data: {
                         title: label,
                         description,
-                        subItems: []
+                        icon: Users,
+                        subItems: node.data?.subItems || []
                     }
                 };
             }
@@ -280,7 +333,8 @@ function ArchitectureFlowContent({ suggestionId }) {
                     data: {
                         title: label,
                         description,
-                        subItems: []
+                        icon: id.includes('validation') ? ShieldCheck : id.includes('upload') ? Cloud : id.includes('compliance') ? CheckSquare : Bot,
+                        subItems: node.data?.subItems || []
                     }
                 };
             }
@@ -293,34 +347,66 @@ function ArchitectureFlowContent({ suggestionId }) {
                     data: {
                         title: label,
                         description,
-                        items: [],
+                        items: node.data?.items || [],
                         color: 'green'
                     }
+                };
+            }
+
+            // Map Shared -> Shared
+            if (type === 'shared') {
+                return {
+                    ...node,
+                    type: 'shared',
+                    data: {
+                        title: label,
+                        icon: ICON_MAP[node.data?.icon] || Database,
+                        items: node.data?.items || []
+                    }
+                };
+            }
+
+            // Map Frame/Layer -> Frame
+            if (type === 'frame' || type === 'layer') {
+                return {
+                    ...node,
+                    type: 'frame',
+                    data: { label }
                 };
             }
 
             return node;
         });
 
-        const edgeStyle = { stroke: '#94a3b8', strokeWidth: 2 };
-        const markerEnd = { type: MarkerType.ArrowClosed, color: '#94a3b8' };
+        const edges = (apiData.edges || []).map(edge => {
+            const styleMeta = getEdgeStyle(edge.label || '');
+            return {
+                ...edge,
+                type: 'smoothstep',
+                label: (edge.label || '').toUpperCase(),
+                labelStyle: { fill: styleMeta.labelColor, fontWeight: 900, fontSize: 9 },
+                labelBgStyle: { fill: '#ffffff', fillOpacity: 0.9, padding: 4 },
+                markerEnd: {
+                    type: MarkerType.ArrowClosed,
+                    color: styleMeta.stroke
+                },
+                style: {
+                    stroke: styleMeta.stroke,
+                    strokeWidth: styleMeta.strokeWidth
+                },
+                animated: styleMeta.animated
+            };
+        });
 
-        const edges = (apiData.edges || []).map(edge => ({
-            ...edge,
-            type: 'smoothstep',
-            markerEnd,
-            style: edgeStyle,
-            label: edge.label?.toUpperCase()
-        }));
-
-        return { nodes, edges };
+        // Apply Dagre Layout - Left-to-Right
+        return getLayoutedElements(nodes, edges, 'LR');
     }, []);
 
     const lastFetchedId = useRef(null);
 
     useEffect(() => {
         if (!suggestionId || lastFetchedId.current === suggestionId) return;
-        
+
         const fetchData = async () => {
             setLoading(true);
             setError(null);
@@ -328,7 +414,7 @@ function ArchitectureFlowContent({ suggestionId }) {
             try {
                 const json = await getAutomationArchitecture(suggestionId);
                 const data = json?.agent_cluster_architecture || (json?.nodes ? json : null);
-                
+
                 if (data && data.nodes) {
                     const { nodes: transformedNodes, edges: transformedEdges } = transformArchitectureData(data);
                     setNodes(transformedNodes);
@@ -371,14 +457,34 @@ function ArchitectureFlowContent({ suggestionId }) {
         return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
     }, [fitView]);
 
+    if (loading) {
+        return (
+            <div className={`w-full border border-slate-200 rounded-3xl flex items-center justify-center bg-slate-50 transition-all duration-300 ${isFullscreen ? 'h-screen' : 'h-[850px]'}`}>
+                <div className="flex flex-col items-center gap-3">
+                    <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
+                    <p className="text-sm font-medium text-slate-500">Loading deployment architecture...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className={`w-full border border-slate-200 rounded-3xl flex items-center justify-center bg-slate-50 transition-all duration-300 ${isFullscreen ? 'h-screen' : 'h-[850px]'}`}>
+                <div className="flex flex-col items-center gap-3 text-red-500 p-8 text-center max-w-md">
+                    <AlertCircle className="w-8 h-8" />
+                    <p className="text-sm font-medium">Failed to load architecture: {error}</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div
             ref={containerRef}
-            className={`w-full border border-slate-200 rounded-3xl overflow-hidden bg-[#f8fafc] relative transition-all duration-500 shadow-2xl ${isFullscreen ? 'h-screen w-screen rounded-none' : 'h-[850px]'
+            className={`w-full border border-slate-200 rounded-3xl overflow-hidden bg-slate-50 relative transition-all duration-500 shadow-2xl ${isFullscreen ? 'h-screen w-screen rounded-none' : 'h-[600px]'
                 }`}
         >
-           
-
             <ReactFlow
                 nodes={nodes}
                 edges={edges}
@@ -388,10 +494,10 @@ function ArchitectureFlowContent({ suggestionId }) {
                 fitView
                 minZoom={0.05}
                 maxZoom={1.5}
-                className="bg-[#f8fafc]"
+                className="bg-white border border-slate-200 shadow-lg"
                 defaultEdgeOptions={{ type: 'smoothstep' }}
             >
-                <Background color="#cbd5e1" gap={24} size={1} style={{ opacity: 0.4 }} />
+                <Background color="#94a3b8" gap={20} size={1} style={{ opacity: 0.25 }} />
                 <Controls className="!bg-white !shadow-2xl !border-slate-100 !rounded-2xl" showFitView={true}>
                     <ControlButton onClick={toggleFullscreen} title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}>
                         <div className="flex items-center justify-center w-full h-full text-slate-800">
@@ -399,25 +505,6 @@ function ArchitectureFlowContent({ suggestionId }) {
                         </div>
                     </ControlButton>
                 </Controls>
-
-                {loading && (
-                    <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-50/50 backdrop-blur-[2px]">
-                        <div className="flex flex-col items-center gap-3 p-8 bg-white rounded-3xl shadow-2xl border border-slate-100">
-                            <Loader2 size={32} className="text-blue-600 animate-spin" />
-                            <p className="text-sm font-black text-slate-800 uppercase tracking-widest">Architecting...</p>
-                        </div>
-                    </div>
-                )}
-
-                {error && (
-                    <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-50/50 backdrop-blur-[2px]">
-                        <div className="flex flex-col items-center gap-3 p-8 bg-white rounded-3xl shadow-2xl border border-red-100 max-w-sm text-center">
-                            <AlertCircle size={32} className="text-red-500" />
-                            <p className="text-sm font-black text-slate-800 uppercase tracking-tight">Deployment Load Failed</p>
-                            <p className="text-[10px] text-slate-500 font-bold">{error}</p>
-                        </div>
-                    </div>
-                )}
             </ReactFlow>
         </div>
     );
