@@ -34,9 +34,9 @@ const ICON_MAP = {
 };
 
 const STEP_TYPE_ACCENT = {
-  'higher agentic intervention': '#10b981',
-  'human + ai intervention': '#f59e0b',
-  'higher human intervention': '#ef4444',
+  'higher agentic intervention': '#ef4444', // Red
+  'human + ai intervention': '#f59e0b',    // Amber
+  'higher human intervention': '#10b981',  // Green
 };
 
 const AGENTIC_KEYWORDS_REGEX = /automates|agentic|triggers|checks|validates|analyzes|calculates|continues/i;
@@ -50,7 +50,7 @@ function getStepAccent(stepType = '') {
   if (type.includes('agentic')) return STEP_TYPE_ACCENT['higher agentic intervention'];
   if (type.includes('human') && type.includes('ai')) return STEP_TYPE_ACCENT['human + ai intervention'];
   if (type.includes('human')) return STEP_TYPE_ACCENT['higher human intervention'];
-  return '#10b981';
+  return '#10b981'; // Default to green
 }
 
 function toDisplayEdgeLabel(label = '') {
@@ -189,6 +189,8 @@ function transformFlowData(apiData) {
       }
     }
 
+    const finalAccent = agenticInfo ? '#ef4444' : '#10b981';
+
     return {
       ...node,
       type: isDecision ? 'decisionNode' : 'processNode',
@@ -197,7 +199,7 @@ function transformFlowData(apiData) {
         ...node.data,
         label: node.data?.label || (isDecision ? 'Decision' : 'Process Step'),
         icon: ICON_MAP[node.data?.icon] || (isDecision ? GitBranch : Database),
-        accentColor: accent,
+        accentColor: finalAccent,
         agenticInfo: agenticInfo,
         hasAgenticPotential: !!agenticInfo
       },
@@ -341,9 +343,10 @@ function ProcessNode({ data, targetPosition, sourcePosition }) {
 
   return (
     <div
-      className={`bg-white border-2 rounded-2xl shadow-xl p-5 flex items-center gap-4 min-w-[260px] max-w-[320px] transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 group relative cursor-pointer ${data.isHighlighted ? 'ring-4 ring-offset-2 ring-brand-500 scale-105 shadow-[0_30px_50px_-15px_rgba(0,0,0,0.3)]' : ''
+      className={`border-2 rounded-2xl shadow-xl p-5 flex items-center gap-4 min-w-[260px] max-w-[320px] transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 group relative cursor-pointer ${data.isHighlighted ? 'ring-4 ring-offset-2 ring-brand-500 scale-105 shadow-[0_30px_50px_-15px_rgba(0,0,0,0.3)]' : ''
         } ${data.isDimmed ? 'opacity-30 grayscale-[30%] blur-[0.5px]' : 'opacity-100'}`}
       style={{
+        backgroundColor: `${accentColor}15`,
         borderColor: data.isHighlighted ? accentColor : `${accentColor}30`,
         transition: 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
       }}
@@ -366,8 +369,11 @@ function ProcessNode({ data, targetPosition, sourcePosition }) {
           onMouseEnter={() => setShowTooltip(true)}
           onMouseLeave={() => setShowTooltip(false)}
         >
-          <div className={`bg-white rounded-full p-2 shadow-xl border-2 border-emerald-500 transition-all duration-500 hover:scale-110 ${isOpen ? 'rotate-90 bg-emerald-50 scale-110' : ''}`}>
-            <GitBranch size={20} className="text-emerald-600" />
+          <div 
+            className={`bg-white rounded-full p-2 shadow-xl border-2 border-emerald-600 transition-all duration-500 hover:scale-110 ${isOpen ? 'rotate-90 bg-slate-50 scale-110' : ''}`}
+           
+          >
+            <GitBranch size={20} className='text-emerald-600'/>
           </div>
 
           {/* Rich Agent Box Popover - On Hover Preview */}
@@ -396,7 +402,10 @@ function ProcessNode({ data, targetPosition, sourcePosition }) {
               <ul className="space-y-3">
                 {agenticInfo?.tasks.map((task, i) => (
                   <li key={i} className="flex items-start gap-3 group/item">
-                    <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                    <div 
+                      className="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 shadow-sm"
+                      style={{ backgroundColor: agenticInfo?.accentColor || accentColor, boxShadow: `0 0 8px ${agenticInfo?.accentColor || accentColor}80` }}
+                    />
                     <span className="text-[11px] font-semibold text-slate-600 leading-relaxed group-hover/item:text-slate-900 transition-colors">
                       {task}
                     </span>

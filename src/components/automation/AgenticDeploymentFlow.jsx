@@ -159,19 +159,16 @@ const AgentNode = ({ data }) => {
 const OrchestratorNode = ({ data }) => {
     const { title, description } = data;
     return (
-        <div className="bg-slate-900 rounded-2xl border-2 border-slate-700 p-5 shadow-2xl min-w-[240px] relative group overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                <Zap size={40} className="text-brand-400" />
-            </div>
+        <div className="bg-white rounded-2xl border-2 border-slate-200 p-5 shadow-lg min-w-[240px] relative group transition-all hover:border-brand-500">
             <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 bg-brand-500/20 rounded-lg border border-brand-500/30">
-                    <Zap size={20} className="text-brand-400" />
+                <div className="p-2 bg-slate-50 rounded-lg border border-slate-100 group-hover:bg-brand-50">
+                    <Zap size={20} className="text-slate-700 group-hover:text-brand-600" />
                 </div>
-                <h5 className="font-black text-base uppercase text-white tracking-widest">{title}</h5>
+                <h5 className="font-black text-base uppercase text-slate-900 tracking-tight leading-tight">{title}</h5>
             </div>
-            <p className="text-base text-slate-400 font-medium leading-relaxed">{description}</p>
-            <Handle type="target" position={Position.Left} className="!w-2 !h-2 !bg-slate-500" />
-            <Handle type="source" position={Position.Right} className="!w-2 !h-2 !bg-slate-500" />
+            <p className="text-base text-slate-500 font-medium leading-relaxed">{description}</p>
+            <Handle type="target" position={Position.Left} className="!w-2 !h-2 !bg-slate-300" />
+            <Handle type="source" position={Position.Right} className="!w-2 !h-2 !bg-slate-300" />
         </div>
     );
 };
@@ -262,6 +259,7 @@ const nodeTypes = {
     connector: ConnectorNode,
 
     agent: AgentNode,
+    orchestrator: OrchestratorNode,
     data: DataNode,
     output: OutputCardNode,
     shared: SharedContextNode,
@@ -305,8 +303,8 @@ function ArchitectureFlowContent({ suggestionId }) {
                     data: {
                         title: label,
                         description,
-                        icon: ICON_MAP[node.data?.icon] || (id.includes('erp') ? Server : (id.includes('db') || id.includes('log') || id.includes('dat')) ? Database : id.includes('gateway') ? Zap : Cloud),
-                        color: id.includes('gateway') ? 'cyan' : 'indigo'
+                        icon: ICON_MAP[node.data?.icon] || (id.includes('erp') ? Server : (id.includes('db') || id.includes('log') || id.includes('dat')) ? Database : id.includes('gateway') ? Zap : id.includes('connector') ? Layers : Cloud),
+                        color: id.includes('gateway') ? 'cyan' : id.includes('erp') ? 'amber' : 'indigo'
                     }
                 };
             }
@@ -333,7 +331,7 @@ function ArchitectureFlowContent({ suggestionId }) {
                     data: {
                         title: label,
                         description,
-                        icon: id.includes('validation') ? ShieldCheck : id.includes('upload') ? Cloud : id.includes('compliance') ? CheckSquare : Bot,
+                        icon: (id.includes('verification') || id.includes('validation')) ? ShieldCheck : id.includes('posting') ? Zap : id.includes('upload') ? Cloud : id.includes('compliance') ? CheckSquare : Bot,
                         subItems: node.data?.subItems || []
                     }
                 };
@@ -413,7 +411,7 @@ function ArchitectureFlowContent({ suggestionId }) {
             lastFetchedId.current = suggestionId;
             try {
                 const json = await getAutomationArchitecture(suggestionId);
-                const data = json?.agent_cluster_architecture || (json?.nodes ? json : null);
+                const data = json?.agent_cluster_architecture || (json?.nodes ? json : (json?.data?.nodes ? json.data : null));
 
                 if (data && data.nodes) {
                     const { nodes: transformedNodes, edges: transformedEdges } = transformArchitectureData(data);
@@ -470,7 +468,7 @@ function ArchitectureFlowContent({ suggestionId }) {
 
     if (error) {
         return (
-            <div className={`w-full border border-slate-200 rounded-3xl flex items-center justify-center bg-slate-50 transition-all duration-300 ${isFullscreen ? 'h-screen' : 'h-[850px]'}`}>
+            <div className={`w-full border border-slate-200 rounded-3xl flex items-center justify-center bg-slate-50 transition-all duration-300 ${isFullscreen ? 'h-screen' : 'h-[600px]'}`}>
                 <div className="flex flex-col items-center gap-3 text-red-500 p-8 text-center max-w-md">
                     <AlertCircle className="w-8 h-8" />
                     <p className="text-sm font-medium">Failed to load architecture: {error}</p>
@@ -498,10 +496,10 @@ function ArchitectureFlowContent({ suggestionId }) {
                 defaultEdgeOptions={{ type: 'smoothstep' }}
             >
                 <Background color="#94a3b8" gap={20} size={1} style={{ opacity: 0.25 }} />
-                <Controls className="!bg-white !shadow-2xl !border-slate-100 !rounded-2xl" showFitView={true}>
+                <Controls className="!bg-white !border-slate-200" showFitView={false}>
                     <ControlButton onClick={toggleFullscreen} title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}>
-                        <div className="flex items-center justify-center w-full h-full text-slate-800">
-                            {isFullscreen ? <Minimize2 size={16} strokeWidth={2.5} /> : <Maximize2 size={16} strokeWidth={2.5} />}
+                        <div className="flex items-center justify-center w-full h-full text-slate-700">
+                            {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
                         </div>
                     </ControlButton>
                 </Controls>
