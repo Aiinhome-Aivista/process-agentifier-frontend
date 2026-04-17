@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Cpu, Shield, Zap, ArrowRight, Lightbulb } from 'lucide-react'
+import { Cpu, Shield, Zap, ArrowRight, Lightbulb, Eye } from 'lucide-react'
 
 const AGENT_TYPE_META = {
   system_integration: { label: 'System Integration', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
@@ -48,7 +48,7 @@ export default function SuggestionCard({ suggestion, index, hideChip }) {
   }
 
   return (
-    <div className="card  p-5 hover:shadow-md transition-all duration-200 animate-slide-up relative overflow-hidden"
+    <div className="card p-5 hover:shadow-md transition-all duration-200 animate-slide-up relative"
       style={{ animationDelay: `${index * 80}ms` }}>
 
       {/* Top-right badge icon */}
@@ -94,6 +94,7 @@ export default function SuggestionCard({ suggestion, index, hideChip }) {
           value={`${suggestion.accuracy_estimate}%`}
           bold
           tooltip={suggestion.accuracy_reason}
+          onEyeClick={handleOpenStats}
         />
         <Metric
           icon={<Zap size={13} className="text-amber-500" />}
@@ -154,17 +155,25 @@ export default function SuggestionCard({ suggestion, index, hideChip }) {
   )
 }
 
-function Metric({ icon, label, value, bold, valueClass, tooltip }) {
+function Metric({ icon, label, value, bold, valueClass, tooltip, onEyeClick }) {
   return (
-    <div className="group relative flex items-center gap-1.5">
+    <div className="group relative flex items-center gap-1.5 cursor-pointer">
       {label === 'Accuracy' && tooltip && (
-        <div className="pointer-events-none absolute top- 0 left-20 z-10 w-24 md:w-[40rem] rounded-t-md rounded-br-md bg-slate-100 px-2.5 py-1 text-left text-[10px] leading-tight font-medium text-black opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
+        <div className="pointer-events-none  absolute top-0 left-20 z-10 w-24 md:w-[40rem] rounded-t-md rounded-br-md bg-slate-50  px-2.5 py-1 text-left text-[10px] leading-tight font-medium text-black opacity-0 shadow-lg transition-opacity duration-200  group-hover:opacity-100">
           {tooltip}
+
+          {/* Arrow */}
+          <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-slate-200" />
         </div>
       )}
       {icon}
       <div className="min-w-0">
-        <p className="text-[10px] uppercase font-semibold text-white/50 tracking-tight leading-none mb-1">{label}</p>
+        <div className="flex items-center gap-1.5 mb-1">
+          <p className="text-[10px] uppercase font-semibold text-white/50 tracking-tight leading-none">{label}</p>
+          {label === 'Accuracy' && (
+            <Eye size={13} className="text-brand-500 group-hover:text-brand-400 transition-colors relative left-15 top-0"  />
+          )}
+        </div>
         <p className={clsx(
           'text-sm font-semibold tabular-nums',
           valueClass || 'text-white/65',

@@ -19,8 +19,8 @@ const STEP_TYPE_COLORS = {
 
 function AutomationBar({ value, automation_reasoning }) {
   const color =
-    value >= 80 ? 'bg-brand-500' :
-      value >= 50 ? 'bg-amber-500' : 'bg-red-400'
+    value >= 80 ? 'bg-red-400' :
+      value > 10 ? 'bg-amber-500' : 'bg-brand-500'
   return (
     <div className="group/bar relative mt-3">
       {automation_reasoning && (
@@ -31,8 +31,8 @@ function AutomationBar({ value, automation_reasoning }) {
       <div className="flex justify-between items-center mb-1">
         <span className="text-xs text-white/40">Automation Potential</span>
         <span className={clsx('text-xs font-semibold',
-          value >= 80 ? 'text-brand-500' :
-            value >= 50 ? 'text-amber-400' : 'text-red-400')}>
+          value >= 80 ? 'text-red-400' :
+            value > 10 ? 'text-amber-400' : 'text-brand-500')}>
           {value}%
         </span>
       </div>
