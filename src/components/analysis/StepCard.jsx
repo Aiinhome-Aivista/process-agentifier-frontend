@@ -15,12 +15,19 @@ const STEP_TYPE_COLORS = {
   decision: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
   approval: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
   notification: 'bg-teal-500/10 text-teal-400 border-teal-500/20',
+  'higher agentic intervention': 'bg-red-500/10 text-red-500 border-red-500/20',
+  'higher human intervention': 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
 }
 
+const getPotentialColor = (value) => {
+  if (value >= 80) return { bg: 'bg-red-500/10', text: 'text-red-500', border: 'border-red-500/20', bar: 'bg-red-500' };
+  if (value > 10) return { bg: 'bg-amber-500/10', text: 'text-amber-400', border: 'border-amber-500/20', bar: 'bg-amber-500' };
+  return { bg: 'bg-brand-500/10', text: 'text-brand-500', border: 'border-brand-500/20', bar: 'bg-brand-500' };
+};
+
 function AutomationBar({ value, automation_reasoning }) {
-  const color =
-    value >= 80 ? 'bg-red-400' :
-      value > 10 ? 'bg-amber-500' : 'bg-brand-500'
+  const colors = getPotentialColor(value);
+  const color = colors.bar;
   return (
     <div className="group/bar relative mt-3">
       {automation_reasoning && (
@@ -30,9 +37,7 @@ function AutomationBar({ value, automation_reasoning }) {
       )}
       <div className="flex justify-between items-center mb-1">
         <span className="text-xs text-white/40">Automation Potential</span>
-        <span className={clsx('text-xs font-semibold',
-          value >= 80 ? 'text-red-400' :
-            value > 10 ? 'text-amber-400' : 'text-brand-500')}>
+        <span className={clsx('text-xs font-semibold', colors.text)}>
           {value}%
         </span>
       </div>
@@ -47,8 +52,16 @@ function AutomationBar({ value, automation_reasoning }) {
 }
 
 export default function StepCard({ step, index, isLast, isSelected, onClick }) {
-  const Icon = STEP_TYPE_ICONS[step.step_type] || User
-  const typeColor = STEP_TYPE_COLORS[step.step_type] || STEP_TYPE_COLORS.manual
+  const Icon = STEP_TYPE_ICONS[step.step_type?.toLowerCase()] || User
+  const potentialColors = getPotentialColor(step.automation_potential);
+
+  // Highlighting specific types and actors with potential-based colors as requested
+  const isAgenticOrHuman = ['higher agentic intervention', 'higher human intervention'].includes(step.step_type?.toLowerCase());
+  const isFinanceActor = step.actor?.toLowerCase().includes('finance') || step.actor?.toLowerCase().includes('manager');
+
+  const typeColor = (isAgenticOrHuman || isFinanceActor)
+    ? `${potentialColors.bg} ${potentialColors.text} ${potentialColors.border}`
+    : (STEP_TYPE_COLORS[step.step_type?.toLowerCase()] || STEP_TYPE_COLORS.manual);
 
   return (
     <div className="flex items-stretch gap-3 shrink-0 w-72">

@@ -50,6 +50,7 @@ import {
     AlertCircle,
     CheckSquare,
     CheckCircle,
+    GitBranch
 } from 'lucide-react';
 import { getAutomationArchitecture } from '../../services/api';
 import { getLayoutedElements } from '../layout/Dagre';
@@ -86,184 +87,93 @@ function getEdgeStyle(label = '') {
 
 // --- Custom Node Components ---
 
-const LayerNode = ({ data }) => {
-    return (
-        <div className="flex flex-col items-center justify-center h-full gap-4 group">
-            <h3 className="text-xl font-black uppercase tracking-[0.2em] text-slate-800 [writing-mode:vertical-rl] rotate-180 text-center leading-tight">
-                {data.label}
-            </h3>
-            <div className="text-indigo-400 opacity-60 group-hover:opacity-100 transition-opacity">
-                <ChevronRight size={40} strokeWidth={3} />
-            </div>
-        </div>
-    );
-};
-
-const ConnectorNode = ({ data }) => {
-    const { title, description, icon: Icon, color = 'indigo' } = data;
+const TypeGroupNode = ({ data }) => {
+    const { label, color = 'indigo' } = data;
     const colors = {
-        indigo: 'border-indigo-200 bg-indigo-50/50 text-indigo-600',
-        emerald: 'border-emerald-200 bg-emerald-50/50 text-emerald-600',
-        amber: 'border-amber-200 bg-amber-50/50 text-amber-600',
-        cyan: 'border-cyan-200 bg-cyan-50/50 text-cyan-600',
+        indigo: 'bg-indigo-50/30 border-indigo-100 ring-indigo-50 text-indigo-700',
+        purple: 'bg-purple-50/30 border-purple-100 ring-purple-50 text-purple-700',
+        amber: 'bg-amber-50/30 border-amber-100 ring-amber-50 text-amber-700',
+        emerald: 'bg-emerald-50/30 border-emerald-100 ring-emerald-50 text-emerald-700',
+        sky: 'bg-sky-50/30 border-sky-100 ring-sky-50 text-sky-700',
+    };
+
+    const headerColors = {
+        indigo: 'bg-indigo-500',
+        purple: 'bg-purple-500',
+        amber: 'bg-amber-500',
+        emerald: 'bg-emerald-500',
+        sky: 'bg-sky-500',
     };
 
     return (
-        <div className={`p-4 rounded-xl border-2 transition-all hover:shadow-xl bg-white flex flex-col gap-2 min-w-[220px] max-w-[260px] ${colors[color] || colors.indigo}`}>
-            <Handle type="target" position={Position.Top} className="!w-2 !h-2 !bg-slate-300" />
-            <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg bg-white shadow-sm ring-1 ring-slate-100`}>
-                    <Icon size={20} className={colors[color]?.split(' ')[2]} />
+        <div className={`w-full h-full border-2 rounded-[2.5rem] shadow-sm relative overflow-hidden ${colors[color] || colors.indigo}`}>
+            <div className={`absolute top-0 left-0 right-0 h-16 ${headerColors[color] || headerColors.indigo} flex items-center px-8 gap-3 shadow-md`}>
+                <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md ring-1 ring-white/30">
+                    {data.icon && <data.icon size={20} className="text-white" />}
                 </div>
-                <h4 className="font-black text-base uppercase tracking-wider text-slate-900 leading-none">{title}</h4>
+                <h3 className="text-lg font-black uppercase tracking-[0.2em] text-white leading-none">
+                    {label}
+                </h3>
             </div>
-            <p className="text-base font-medium text-slate-500 leading-relaxed px-1">
-                {description}
-            </p>
-            <Handle type="source" position={Position.Bottom} className="!w-2 !h-2 !bg-slate-300" />
+            <div className="pt-20 pb-8 px-8 h-full">
+                {/* Content will be nested nodes */}
+            </div>
         </div>
     );
 };
 
-
-
-const AgentNode = ({ data }) => {
-    const { title, description, subItems = [], icon: Icon = Bot } = data;
-    return (
-        <div className="bg-white rounded-2xl border-2 border-slate-200 p-4 shadow-lg min-w-[240px] hover:border-brand-500 transition-all group">
-            <div className="flex items-start gap-4 mb-3">
-                <div className="p-3 bg-slate-50 rounded-xl group-hover:bg-brand-50 transition-colors">
-                    <Icon className="text-slate-700 group-hover:text-brand-600" size={24} />
-                </div>
-                <div className="text-left">
-                    <h5 className="font-black text-base uppercase text-slate-900 leading-tight mb-1 tracking-tight">{title}</h5>
-                    <p className="text-base text-slate-500 font-medium leading-relaxed">{description}</p>
-                </div>
-            </div>
-            {subItems.length > 0 && (
-                <div className="mt-2 space-y-1.5 border-t border-slate-50 pt-2">
-                    {subItems.map((item, i) => (
-                        <div key={i} className="flex items-center gap-2 bg-slate-50/50 p-1.5 rounded-lg border border-slate-100">
-                            {item.icon && <item.icon size={12} className="text-slate-400" />}
-                            <span className="text-base font-black text-slate-600 uppercase tracking-tight">{item.label}</span>
-                        </div>
-                    ))}
-                </div>
-            )}
-            <Handle type="target" position={Position.Left} className="!w-2 !h-2 !bg-slate-300" />
-            <Handle type="source" position={Position.Right} className="!w-2 !h-2 !bg-slate-300" />
-        </div>
-    );
-};
-
-const OrchestratorNode = ({ data }) => {
-    const { title, description } = data;
-    return (
-        <div className="bg-white rounded-2xl border-2 border-slate-200 p-5 shadow-lg min-w-[240px] relative group transition-all hover:border-brand-500">
-            <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 bg-slate-50 rounded-lg border border-slate-100 group-hover:bg-brand-50">
-                    <Zap size={20} className="text-slate-700 group-hover:text-brand-600" />
-                </div>
-                <h5 className="font-black text-base uppercase text-slate-900 tracking-tight leading-tight">{title}</h5>
-            </div>
-            <p className="text-base text-slate-500 font-medium leading-relaxed">{description}</p>
-            <Handle type="target" position={Position.Left} className="!w-2 !h-2 !bg-slate-300" />
-            <Handle type="source" position={Position.Right} className="!w-2 !h-2 !bg-slate-300" />
-        </div>
-    );
-};
-
-const DataNode = ({ data }) => {
+const ProcessStepNode = ({ data }) => {
     const { title, description, icon: Icon = Database } = data;
-    return (
-        <div className="bg-white rounded-2xl border-2 border-slate-200 p-4 shadow-lg flex items-center gap-4 min-w-[200px] group transition-all hover:scale-105">
-            <div className="p-3 bg-blue-50 rounded-xl">
-                <Icon className="text-blue-600" size={24} />
-            </div>
-            <div className="text-left">
-                <h5 className="font-black text-base uppercase text-slate-900 leading-tight mb-0.5 tracking-tight">{title}</h5>
-                <p className="text-base text-slate-500 font-semibold uppercase tracking-tighter">{description}</p>
-            </div>
-            <Handle type="target" position={Position.Left} className="!w-2 !h-2 !bg-slate-300" />
-            <Handle type="source" position={Position.Right} className="!w-2 !h-2 !bg-slate-300" />
-        </div>
-    );
-};
+    // We use multiple handles to ensure edges are separable and don't merge into a single "trunk"
+    const handleOffsets = ['10%', '30%', '50%', '70%', '90%'];
 
-const OutputCardNode = ({ data }) => {
-    const { title, description, items = [], color = 'slate' } = data;
-    const colors = {
-        slate: 'bg-slate-50 border-slate-200 text-slate-600',
-        green: 'bg-emerald-50 border-emerald-200 text-emerald-600',
-        amber: 'bg-amber-50 border-amber-100 text-amber-600',
-    };
     return (
-        <div className={`p-5 rounded-3xl border-2 shadow-xl min-w-[280px] flex flex-col gap-4 bg-white border-slate-200 ${colors[color]?.split(' ')[1]}`}>
-            <h4 className="font-black text-sm uppercase tracking-widest text-slate-900 text-center border-b pb-3">{title}</h4>
-            {description && <p className="text-[10px] text-slate-500 font-bold text-center -mt-2">{description}</p>}
-            <div className="space-y-3">
-                {items.map((item, i) => (
-                    <div key={i} className={`flex items-center gap-4 p-3 rounded-2xl transition-all hover:translate-x-1 ${colors[item.color] || colors.slate}`}>
-                        <div className="bg-white p-2 rounded-lg shadow-sm">
-                            <item.icon size={20} />
-                        </div>
-                        <span className="text-[10px] font-black uppercase text-slate-800 tracking-tight leading-none">{item.label}</span>
-                    </div>
-                ))}
+        <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xl flex items-center gap-4 min-w-[280px] max-w-[340px] group transition-all hover:scale-[1.02] hover:shadow-2xl relative border-l-4 border-l-rose-500">
+            {/* Multi-Target Handles (Top) */}
+            {handleOffsets.map((offset, i) => (
+                <Handle 
+                    key={`t-${i}`}
+                    id={`t-${i}`}
+                    type="target" 
+                    position={Position.Top} 
+                    style={{ left: offset }}
+                    className="!w-2 !h-2 !bg-slate-300 border-2 border-white opacity-0 group-hover:opacity-100 transition-opacity" 
+                />
+            ))}
+            
+            <div className="p-2.5 rounded-xl bg-slate-50 shadow-inner group-hover:bg-red-50 transition-colors">
+                <Icon className="text-rose-500" size={24} strokeWidth={2.5} />
             </div>
-            <Handle type="target" position={Position.Left} className="!w-2 !h-2 !bg-slate-300" />
-        </div>
-    );
-};
+            
+            <div className="flex flex-col gap-0.5 pr-2">
+                <h5 className="font-extrabold text-lg text-slate-900 leading-tight tracking-tight">
+                    {title}
+                </h5>
+                {description && (
+                    <p className="text-sm text-slate-500 font-medium leading-relaxed line-clamp-2">
+                        {description}
+                    </p>
+                )}
+            </div>
 
-const SharedContextNode = ({ data }) => {
-    const { title, icon: Icon, items = [] } = data;
-    return (
-        <div className="bg-emerald-50/30 rounded-[2rem] border-2 border-emerald-100 p-6 flex flex-col gap-4 shadow-lg min-w-[260px] relative">
-            <div className="flex items-center gap-3">
-                <div className="p-2 bg-emerald-100 rounded-xl">
-                    <Icon className="text-emerald-700" size={20} />
-                </div>
-                <h4 className="font-black text-xs uppercase tracking-widest text-slate-900">{title}</h4>
-            </div>
-            <div className="space-y-2">
-                {items.map((item, i) => (
-                    <div key={i} className="bg-white border border-emerald-50 p-2.5 rounded-xl flex items-center gap-3 shadow-sm">
-                        <div className={`w-2 h-2 rounded-full ${item.dbType === 'vector' ? 'bg-indigo-500' : 'bg-emerald-500'}`} />
-                        <div className="text-left leading-none">
-                            <h5 className="text-base font-black uppercase text-slate-900 mb-0.5">{item.label}</h5>
-                            <p className="text-[8px] text-slate-400 font-bold">{item.desc}</p>
-                        </div>
-                    </div>
-                ))}
-            </div>
-            <Handle type="target" position={Position.Top} className="!w-2 !h-2 !bg-slate-300" />
-        </div>
-    );
-};
-
-const GroupFrame = ({ data }) => {
-    return (
-        <div className="w-full h-full border-2 border-dashed border-slate-200 rounded-[3rem] bg-slate-50/30 p-10 flex flex-col">
-            {data.label && (
-                <div className="absolute -top-4 left-10 bg-white border-2 border-slate-100 px-6 py-2 rounded-2xl shadow-sm">
-                    <span className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">{data.label}</span>
-                </div>
-            )}
+            {/* Multi-Source Handles (Bottom) */}
+            {handleOffsets.map((offset, i) => (
+                <Handle 
+                    key={`s-${i}`}
+                    id={`s-${i}`}
+                    type="source" 
+                    position={Position.Bottom} 
+                    style={{ left: offset }}
+                    className="!w-2 !h-2 !bg-slate-300 border-2 border-white opacity-0 group-hover:opacity-100 transition-opacity" 
+                />
+            ))}
         </div>
     );
 };
 
 const nodeTypes = {
-    layer: LayerNode,
-    connector: ConnectorNode,
-
-    agent: AgentNode,
-    orchestrator: OrchestratorNode,
-    data: DataNode,
-    output: OutputCardNode,
-    shared: SharedContextNode,
-    frame: GroupFrame,
+    groupNode: TypeGroupNode,
+    stepNode: ProcessStepNode,
 };
 
 const Library = (props) => (
@@ -278,126 +188,117 @@ function ArchitectureFlowContent({ suggestionId }) {
     const [error, setError] = useState(null);
 
     const transformArchitectureData = useCallback((apiData) => {
-        const nodes = (apiData.nodes || []).map(node => {
-            const id = node.id.toLowerCase();
-            const type = (node.type || '').toLowerCase();
-            const label = node.data?.label || node.data?.title || 'Unknown';
-            const description = node.data?.description || '';
+        const rawNodes = apiData.nodes || [];
+        const rawEdges = apiData.edges || [];
 
-            if (id.includes('orchestrator') || type === 'orchestrator' || type === 'system' && id.includes('orchestrator')) {
-                return {
+        // 1. Group nodes by type
+        const nodesByType = rawNodes.reduce((acc, node) => {
+            const type = (node.type || 'unknown').toLowerCase();
+            if (!acc[type]) acc[type] = [];
+            acc[type].push(node);
+            return acc;
+        }, {});
+
+        const groupConfigs = {
+            input: { label: 'EXTERNAL INPUTS', color: 'sky', icon: Layout },
+            system: { label: 'ENTERPRISE SYSTEMS', color: 'indigo', icon: Server },
+            agent: { label: 'AUTOMATION AGENTS', color: 'purple', icon: Bot },
+            human: { label: 'MANUAL REVIEWERS', color: 'amber', icon: Users },
+            output: { label: 'FINAL OUTPUTS', color: 'emerald', icon: CheckCircle },
+            unknown: { label: 'PROCESS STEPS', color: 'indigo', icon: Layers }
+        };
+
+        const finalNodes = [];
+        const edgeList = [...rawEdges];
+
+        Object.entries(nodesByType).forEach(([type, nodes]) => {
+            const config = groupConfigs[type] || groupConfigs.unknown;
+            const groupId = `group_${type}`;
+
+            // Create Group Node
+            finalNodes.push({
+                id: groupId,
+                type: 'groupNode',
+                data: { 
+                    label: type.toUpperCase(), 
+                    color: config.color,
+                    icon: config.icon
+                },
+                position: { x: 0, y: 0 }, 
+                style: { width: 600, height: 400 },
+            });
+
+            // Map Child Nodes
+            nodes.forEach(node => {
+                const id = node.id.toLowerCase();
+                finalNodes.push({
                     ...node,
-                    type: 'orchestrator',
+                    type: 'stepNode',
+                    parentNode: groupId,
+                    extent: 'parent',
                     data: {
-                        title: label,
-                        description
+                        title: node.data?.label || node.data?.title || 'Unknown',
+                        description: node.data?.description || '',
+                        icon: (id.includes('verification') || id.includes('validation') || id.includes('match') || id.includes('check')) ? ShieldCheck : 
+                              (id.includes('erp') || id.includes('finance')) ? Database : 
+                              (id.includes('gateway') || id.includes('api')) ? Zap : 
+                              (id.includes('ocr') || id.includes('nlp')) ? Brain : 
+                              (type === 'input') ? Mail : Bot
                     }
-                };
-            }
-
-            // Map System -> Connector
-            if (type === 'system') {
-                return {
-                    ...node,
-                    type: 'connector',
-                    data: {
-                        title: label,
-                        description,
-                        icon: ICON_MAP[node.data?.icon] || (id.includes('erp') ? Server : (id.includes('db') || id.includes('log') || id.includes('dat')) ? Database : id.includes('gateway') ? Zap : id.includes('connector') ? Layers : Cloud),
-                        color: id.includes('gateway') ? 'cyan' : id.includes('erp') ? 'amber' : 'indigo'
-                    }
-                };
-            }
-
-            // Map Human -> Agent (with User icon)
-            if (type === 'human') {
-                return {
-                    ...node,
-                    type: 'agent',
-                    data: {
-                        title: label,
-                        description,
-                        icon: Users,
-                        subItems: node.data?.subItems || []
-                    }
-                };
-            }
-
-            // Map Agent -> Agent
-            if (type === 'agent') {
-                return {
-                    ...node,
-                    type: 'agent',
-                    data: {
-                        title: label,
-                        description,
-                        icon: (id.includes('verification') || id.includes('validation')) ? ShieldCheck : id.includes('posting') ? Zap : id.includes('upload') ? Cloud : id.includes('compliance') ? CheckSquare : Bot,
-                        subItems: node.data?.subItems || []
-                    }
-                };
-            }
-
-            // Map Output -> Output
-            if (type === 'output') {
-                return {
-                    ...node,
-                    type: 'output',
-                    data: {
-                        title: label,
-                        description,
-                        items: node.data?.items || [],
-                        color: 'green'
-                    }
-                };
-            }
-
-            // Map Shared -> Shared
-            if (type === 'shared') {
-                return {
-                    ...node,
-                    type: 'shared',
-                    data: {
-                        title: label,
-                        icon: ICON_MAP[node.data?.icon] || Database,
-                        items: node.data?.items || []
-                    }
-                };
-            }
-
-            // Map Frame/Layer -> Frame
-            if (type === 'frame' || type === 'layer') {
-                return {
-                    ...node,
-                    type: 'frame',
-                    data: { label }
-                };
-            }
-
-            return node;
+                });
+            });
         });
 
-        const edges = (apiData.edges || []).map(edge => {
+        const sourceCounts = {};
+        const targetCounts = {};
+
+        const mappedEdges = edgeList.map(edge => {
             const styleMeta = getEdgeStyle(edge.label || '');
-            return {
+            
+            // Distribute handles to prevent trunking
+            const sCount = sourceCounts[edge.source] || 0;
+            const tCount = targetCounts[edge.target] || 0;
+            
+            const edgeResult = {
                 ...edge,
-                type: 'smoothstep',
+                type: 'step',
+                sourceHandle: `s-${sCount % 5}`,
+                targetHandle: `t-${tCount % 5}`,
                 label: (edge.label || '').toUpperCase(),
-                labelStyle: { fill: styleMeta.labelColor, fontWeight: 900, fontSize: 9 },
-                labelBgStyle: { fill: '#ffffff', fillOpacity: 0.9, padding: 4 },
+                labelStyle: { 
+                    fill: styleMeta.labelColor, 
+                    fontWeight: 900, 
+                    fontSize: 11,
+                    letterSpacing: '0.05em' 
+                },
+                labelBgStyle: { 
+                    fill: '#ffffff', 
+                    fillOpacity: 0.95, 
+                    padding: 6,
+                    rx: 4,
+                },
+                labelBgPadding: [6, 4],
                 markerEnd: {
                     type: MarkerType.ArrowClosed,
-                    color: styleMeta.stroke
+                    color: styleMeta.stroke,
+                    width: 20,
+                    height: 20,
                 },
                 style: {
                     stroke: styleMeta.stroke,
-                    strokeWidth: styleMeta.strokeWidth
+                    strokeWidth: styleMeta.strokeWidth,
                 },
                 animated: styleMeta.animated
             };
+
+            sourceCounts[edge.source] = sCount + 1;
+            targetCounts[edge.target] = tCount + 1;
+
+            return edgeResult;
         });
 
-        // Apply Dagre Layout - Left-to-Right
-        return getLayoutedElements(nodes, edges, 'LR');
+        // Apply Dagre Layout - Top-to-Bottom
+        return getLayoutedElements(finalNodes, mappedEdges, 'TB');
     }, []);
 
     const lastFetchedId = useRef(null);

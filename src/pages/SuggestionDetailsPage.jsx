@@ -151,12 +151,12 @@ export default function SuggestionDetailsPage() {
         <AgenticWorkflow suggestionId={id} />
 
         {/* Architecture Card (Hardcoded) */}
-        <div
+        {/* <div
           className="opacity-0 animate-slide-up"
           style={{ animationDelay: '800ms', animationFillMode: 'both' }}
         >
           <DeploymentModelCard suggestion={suggestion} step={matchedStep} />
-        </div>
+        </div> */}
 
         {/* Deployment Section (API-driven) */}
         <div
@@ -178,8 +178,8 @@ function AgentDeploymentCard({ suggestionId }) {
           <Cpu size={20} className="text-brand-500" />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-white/90 uppercase tracking-tight">Agent Deployment Model</h2>
-          <p className="text-[10px] text-white/40 uppercase tracking-widest font-semibold">Technical Deployment Architecture: Agentic AI Procurement Platform</p>
+          <h2 className="text-xl font-bold text-white/90 uppercase tracking-tight">Agent Cluster Architecture</h2>
+          <p className="text-[10px] text-white/40 uppercase tracking-widest font-semibold">Operating Model: Workflow Automation</p>
         </div>
       </div>
       <div className="rounded-2xl overflow-hidden border border-white/5 shadow-2xl bg-black/40">
@@ -189,113 +189,113 @@ function AgentDeploymentCard({ suggestionId }) {
   )
 }
 
-function DeploymentModelCard({ suggestion, step }) {
-  // Static dummy data — contextual to the selected suggestion
-  // Replace with API data later
-  const erpModule = step?.erp_module || 'ERP Module'
-  const agentType = suggestion?.agent_type || 'workflow_automation'
+// function DeploymentModelCard({ suggestion, step }) {
+//   // Static dummy data — contextual to the selected suggestion
+//   // Replace with API data later
+//   const erpModule = step?.erp_module || 'ERP Module'
+//   const agentType = suggestion?.agent_type || 'workflow_automation'
 
-  const staticData = {
-    operatingModel: agentType === 'rpa' ? 'Robotic Process' : agentType === 'ai_agent' ? 'AI-Driven' : 'Workflow Automation',
-    architectureLayers: [
-      {
-        title: "User Interaction Layer",
-        description: `Dashboard interface for monitoring ${suggestion?.title || 'this automation'}. Provides real-time status indicators, manual override controls, and approval workflows for edge cases.`
-      },
-      {
-        title: "Agent Orchestration",
-        description: `Coordinates the ${agentType.replace('_', ' ')} agent lifecycle — handles task scheduling, parallel execution across ${erpModule} transactions, retry logic for failed operations, and inter-agent communication.`
-      },
-      {
-        title: `${erpModule} Integration`,
-        description: `Bi-directional connector to the ${erpModule} module. Manages data mapping for ${(step?.inputs || []).join(', ') || 'input data'}, transaction posting, master data synchronization, and real-time event triggers.`
-      },
-      {
-        title: "Governance / Observability",
-        description: `Full audit trail for every agent action within ${erpModule}. Includes compliance logging, performance dashboards, SLA tracking, and anomaly detection for ${(step?.pain_points || []).join('; ') || 'operational issues'}.`
-      }
-    ],
-    erpContext: [
-      {
-        title: "System Configuration",
-        description: `Module: ${erpModule} — API endpoints, authentication tokens, rate limits, and tenant-specific configurations. Maps ${(step?.inputs || []).join(', ') || 'inputs'} → ${(step?.outputs || []).join(', ') || 'outputs'}.`
-      },
-      {
-        title: "Connection Layer",
-        description: `Secure integration with ${erpModule} via OAuth2/certificate-based auth. Connection pooling optimized for ${step?.duration_estimate || 'standard'} execution windows with automatic failover.`
-      },
-      {
-        title: "Access & Security",
-        description: `Role-based access control for ${step?.actor || 'system'} operations. Data masking for sensitive fields, IP whitelisting, encryption at-rest/in-transit, and segregation of duties enforcement.`
-      }
-    ],
-    deploymentSteps: [
-      { id: 1, label: "Trigger", description: `${step?.actor || 'User'} initiates the automation or a scheduled event fires based on ${erpModule} conditions.` },
-      { id: 2, label: "Validate", description: `Agent validates ${(step?.inputs || ['input data']).join(', ')} against business rules and data quality checks.` },
-      { id: 3, label: "Execute", description: `${suggestion?.title || 'Automation task'} runs against ${erpModule}, processing transactions in real-time.` },
-      { id: 4, label: "Verify", description: `Automated checks confirm ${(step?.outputs || ['output']).join(', ')} accuracy — ${suggestion?.accuracy_estimate || 80}% target accuracy.` },
-      { id: 5, label: "Complete", description: `Results posted to ${erpModule}, audit logs written, and ${step?.actor || 'stakeholders'} notified of completion.` }
-    ]
-  };
+//   const staticData = {
+//     operatingModel: agentType === 'rpa' ? 'Robotic Process' : agentType === 'ai_agent' ? 'AI-Driven' : 'Workflow Automation',
+//     architectureLayers: [
+//       {
+//         title: "User Interaction Layer",
+//         description: `Dashboard interface for monitoring ${suggestion?.title || 'this automation'}. Provides real-time status indicators, manual override controls, and approval workflows for edge cases.`
+//       },
+//       {
+//         title: "Agent Orchestration",
+//         description: `Coordinates the ${agentType.replace('_', ' ')} agent lifecycle — handles task scheduling, parallel execution across ${erpModule} transactions, retry logic for failed operations, and inter-agent communication.`
+//       },
+//       {
+//         title: `${erpModule} Integration`,
+//         description: `Bi-directional connector to the ${erpModule} module. Manages data mapping for ${(step?.inputs || []).join(', ') || 'input data'}, transaction posting, master data synchronization, and real-time event triggers.`
+//       },
+//       {
+//         title: "Governance / Observability",
+//         description: `Full audit trail for every agent action within ${erpModule}. Includes compliance logging, performance dashboards, SLA tracking, and anomaly detection for ${(step?.pain_points || []).join('; ') || 'operational issues'}.`
+//       }
+//     ],
+//     erpContext: [
+//       {
+//         title: "System Configuration",
+//         description: `Module: ${erpModule} — API endpoints, authentication tokens, rate limits, and tenant-specific configurations. Maps ${(step?.inputs || []).join(', ') || 'inputs'} → ${(step?.outputs || []).join(', ') || 'outputs'}.`
+//       },
+//       {
+//         title: "Connection Layer",
+//         description: `Secure integration with ${erpModule} via OAuth2/certificate-based auth. Connection pooling optimized for ${step?.duration_estimate || 'standard'} execution windows with automatic failover.`
+//       },
+//       {
+//         title: "Access & Security",
+//         description: `Role-based access control for ${step?.actor || 'system'} operations. Data masking for sensitive fields, IP whitelisting, encryption at-rest/in-transit, and segregation of duties enforcement.`
+//       }
+//     ],
+//     deploymentSteps: [
+//       { id: 1, label: "Trigger", description: `${step?.actor || 'User'} initiates the automation or a scheduled event fires based on ${erpModule} conditions.` },
+//       { id: 2, label: "Validate", description: `Agent validates ${(step?.inputs || ['input data']).join(', ')} against business rules and data quality checks.` },
+//       { id: 3, label: "Execute", description: `${suggestion?.title || 'Automation task'} runs against ${erpModule}, processing transactions in real-time.` },
+//       { id: 4, label: "Verify", description: `Automated checks confirm ${(step?.outputs || ['output']).join(', ')} accuracy — ${suggestion?.accuracy_estimate || 80}% target accuracy.` },
+//       { id: 5, label: "Complete", description: `Results posted to ${erpModule}, audit logs written, and ${step?.actor || 'stakeholders'} notified of completion.` }
+//     ]
+//   };
 
-  return (
-    <div className="card p-8 border-brand-500/20 bg-gradient-to-b from-white/5 to-transparent">
-      <div className="flex items-center gap-3 mb-8">
-        <div className="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center">
-          <Cpu size={20} className="text-brand-500" />
-        </div>
-        <div>
-          <h2 className="text-xl font-bold text-white/90">Agent Cluster Architecture</h2>
-          <p className="text-xs text-white/40">{erpModule} · {staticData.operatingModel} Agent</p>
-        </div>
-      </div>
+//   return (
+//     <div className="card p-8 border-brand-500/20 bg-gradient-to-b from-white/5 to-transparent">
+//       <div className="flex items-center gap-3 mb-8">
+//         <div className="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center">
+//           <Cpu size={20} className="text-brand-500" />
+//         </div>
+//         <div>
+//           <h2 className="text-xl font-bold text-white/90">Agent Cluster Architecture</h2>
+//           <p className="text-xs text-white/40">{erpModule} · {staticData.operatingModel} Agent</p>
+//         </div>
+//       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
-        {/* Operating Model / Architecture Layers */}
-        <div className="bg-black/20 rounded-xl p-6 border border-white/5">
-          <h3 className="text-sm font-semibold text-brand-400 uppercase tracking-widest mb-1">
-            Operating Model: {staticData.operatingModel}
-          </h3>
-          <p className="text-xs text-white/30 mb-5">Layered architecture for agent execution</p>
-          <div className="space-y-4">
-            {staticData.architectureLayers.map((layer, idx) => (
-              <div key={idx} className="flex gap-3">
-                <div className="flex flex-col items-center pt-1">
-                  <span className="text-[10px] font-bold text-brand-500/60 bg-brand-500/10 w-6 h-6 rounded-md flex items-center justify-center">
-                    {(idx + 1).toString().padStart(2, '0')}
-                  </span>
-                  {idx < staticData.architectureLayers.length - 1 && (
-                    <div className="w-px flex-1 bg-white/10 mt-1" />
-                  )}
-                </div>
-                <div className="flex-1 pb-2">
-                  <p className="text-sm font-semibold text-white/90">{layer.title}</p>
-                  <p className="text-xs text-white/40 leading-relaxed mt-1">{layer.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+//       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+//         {/* Operating Model / Architecture Layers */}
+//         <div className="bg-black/20 rounded-xl p-6 border border-white/5">
+//           <h3 className="text-sm font-semibold text-brand-400 uppercase tracking-widest mb-1">
+//             Operating Model: {staticData.operatingModel}
+//           </h3>
+//           <p className="text-xs text-white/30 mb-5">Layered architecture for agent execution</p>
+//           <div className="space-y-4">
+//             {staticData.architectureLayers.map((layer, idx) => (
+//               <div key={idx} className="flex gap-3">
+//                 <div className="flex flex-col items-center pt-1">
+//                   <span className="text-[10px] font-bold text-brand-500/60 bg-brand-500/10 w-6 h-6 rounded-md flex items-center justify-center">
+//                     {(idx + 1).toString().padStart(2, '0')}
+//                   </span>
+//                   {idx < staticData.architectureLayers.length - 1 && (
+//                     <div className="w-px flex-1 bg-white/10 mt-1" />
+//                   )}
+//                 </div>
+//                 <div className="flex-1 pb-2">
+//                   <p className="text-sm font-semibold text-white/90">{layer.title}</p>
+//                   <p className="text-xs text-white/40 leading-relaxed mt-1">{layer.description}</p>
+//                 </div>
+//               </div>
+//             ))}
+//           </div>
+//         </div>
 
-        {/* ERP Context */}
-        <div className="bg-black/20 rounded-xl p-6 border border-white/5">
-          <h3 className="text-sm font-semibold text-blue-400 uppercase tracking-widest mb-1">
-            ERP Context
-          </h3>
-          <p className="text-xs text-white/30 mb-5">{erpModule} integration & security</p>
-          <div className="space-y-4">
-            {staticData.erpContext.map((item, idx) => (
-              <div key={idx} className="bg-white/[0.02] rounded-lg p-4 border border-white/5">
-                <div className="flex items-center gap-2 mb-2">
-                  <CheckCircle2 size={14} className="text-blue-500/60" />
-                  <p className="text-sm font-semibold text-white/90">{item.title}</p>
-                </div>
-                <p className="text-xs text-white/40 leading-relaxed pl-[22px]">{item.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
+//         {/* ERP Context */}
+//         <div className="bg-black/20 rounded-xl p-6 border border-white/5">
+//           <h3 className="text-sm font-semibold text-blue-400 uppercase tracking-widest mb-1">
+//             ERP Context
+//           </h3>
+//           <p className="text-xs text-white/30 mb-5">{erpModule} integration & security</p>
+//           <div className="space-y-4">
+//             {staticData.erpContext.map((item, idx) => (
+//               <div key={idx} className="bg-white/[0.02] rounded-lg p-4 border border-white/5">
+//                 <div className="flex items-center gap-2 mb-2">
+//                   <CheckCircle2 size={14} className="text-blue-500/60" />
+//                   <p className="text-sm font-semibold text-white/90">{item.title}</p>
+//                 </div>
+//                 <p className="text-xs text-white/40 leading-relaxed pl-[22px]">{item.description}</p>
+//               </div>
+//             ))}
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   )
+// }

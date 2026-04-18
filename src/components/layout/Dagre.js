@@ -11,15 +11,17 @@ export const getLayoutedElements = (nodes, edges, direction = 'TB') => {
     processNode: { width: 280, height: 80 },
     agentNode: { width: 320, height: 220 },
     decisionNode: { width: 140, height: 140 },
-    agentGroupNode: { width: 500, height: 200 } // Minimums for groups
+    agentGroupNode: { width: 500, height: 200 },
+    groupNode: { width: 600, height: 400 },
+    stepNode: { width: 340, height: 110 }
   };
 
   dagreGraph.setGraph({
     rankdir: direction,
-    ranksep: 120, // Vertical distance between ranks
-    nodesep: 80,  // Horizontal distance between nodes in the same rank
-    marginx: 40,
-    marginy: 40
+    ranksep: 160, // Increased vertical distance for distributed edges
+    nodesep: 120, // Increased horizontal distance for better group visibility
+    marginx: 60,
+    marginy: 60
   });
 
   nodes.forEach((node) => {
@@ -52,11 +54,11 @@ export const getLayoutedElements = (nodes, edges, direction = 'TB') => {
 
     // If it's a parent node, its width/height is calculated by Dagre
     if (dagreGraph.children(node.id).length > 0) {
-      // Add padding for group headers/spacing
+      // Add padding for group headers and internal spacing
       res.style = {
         ...node.style,
-        width: nodeData.width + 40,
-        height: nodeData.height + 60 // More height for the header
+        width: nodeData.width + 100, // Horizontal padding
+        height: nodeData.height + 140 // Vertical padding + Header height
       };
     }
 
