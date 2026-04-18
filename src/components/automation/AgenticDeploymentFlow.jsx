@@ -457,7 +457,7 @@ function ArchitectureFlowContent({ suggestionId }) {
 
     if (loading) {
         return (
-            <div className={`w-full border border-slate-200 rounded-3xl flex items-center justify-center bg-slate-50 transition-all duration-300 ${isFullscreen ? 'h-screen' : 'h-[850px]'}`}>
+            <div className={`w-full border border-slate-200 rounded-3xl flex items-center justify-center bg-slate-50 transition-all duration-300 ${isFullscreen ? 'h-screen' : 'h-[600px]'}`}>
                 <div className="flex flex-col items-center gap-3">
                     <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
                     <p className="text-sm font-medium text-slate-500">Loading deployment architecture...</p>
