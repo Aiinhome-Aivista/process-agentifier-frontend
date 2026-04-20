@@ -1,29 +1,25 @@
 import dagre from 'dagre';
 
 export const getLayoutedElements = (nodes, edges, direction = 'TB') => {
+  const isHorizontal = direction === 'LR';
   const dagreGraph = new dagre.graphlib.Graph({ compound: true });
   dagreGraph.setDefaultEdgeLabel(() => ({}));
 
-  const isHorizontal = direction === 'LR';
-
-  // Custom node dimensions based on type
-  const nodeDimensions = {
-    processNode: { width: 280, height: 80 },
-    agentNode: { width: 320, height: 220 },
-    decisionNode: { width: 140, height: 140 },
-    agentGroupNode: { width: 500, height: 200 },
-    groupNode: { width: 600, height: 400 },
-    stepNode: { width: 340, height: 110 }
-  };
-
   dagreGraph.setGraph({
     rankdir: direction,
-    ranksep: 160, // Increased vertical distance for distributed edges
-    nodesep: 120, // Increased horizontal distance for better group visibility
-    marginx: 60,
-    marginy: 60
+    ranksep: 200, // Increased for clarity
+    nodesep: 150, // Increased to prevent clustering
+    marginx: 80,
+    marginy: 80
   });
 
+  // 1. Initial sizing pass
+  const nodeDimensions = {
+    stepNode: { width: 500, height: 220 },
+    groupNode: { width: 900, height: 700 }, // Scaled group fallback
+  };
+
+  // Add all nodes to graph
   nodes.forEach((node) => {
     const dim = nodeDimensions[node.type] || { width: 250, height: 100 };
     dagreGraph.setNode(node.id, { width: dim.width, height: dim.height });
@@ -32,33 +28,42 @@ export const getLayoutedElements = (nodes, edges, direction = 'TB') => {
     }
   });
 
+  // Add all edges
   edges.forEach((edge) => {
     dagreGraph.setEdge(edge.source, edge.target);
   });
 
+  // 2. Perform Layout
   dagre.layout(dagreGraph);
 
+  // 3. Map back to React Flow
   const layoutedNodes = nodes.map((node) => {
     const nodeData = dagreGraph.node(node.id);
-    const parent = node.parentNode ? dagreGraph.node(node.parentNode) : null;
+    const parentId = node.parentNode;
+    const parentData = parentId ? dagreGraph.node(parentId) : null;
+
+    // Calculate position
+    // React Flow child positions are relative to parent top-left
+    const x = nodeData.x - nodeData.width / 2;
+    const y = nodeData.y - nodeData.height / 2;
 
     const res = {
       ...node,
       position: {
-        x: nodeData.x - nodeData.width / 2 - (parent ? parent.x - parent.width / 2 : 0),
-        y: nodeData.y - nodeData.height / 2 - (parent ? parent.y - parent.height / 2 : 0),
+        x: parentData ? x - (parentData.x - parentData.width / 2) + 60 : x, // Offset into group padding
+        y: parentData ? y - (parentData.y - parentData.height / 2) + 100 : y, // Offset below header
       },
       targetPosition: isHorizontal ? 'left' : 'top',
       sourcePosition: isHorizontal ? 'right' : 'bottom',
     };
 
-    // If it's a parent node, its width/height is calculated by Dagre
+    // If this is a group node, ensure it has the dimensions Dagre calculated
     if (dagreGraph.children(node.id).length > 0) {
-      // Add padding for group headers and internal spacing
+      // Add extra padding for the header (64px) and internal space
       res.style = {
         ...node.style,
-        width: nodeData.width + 100, // Horizontal padding
-        height: nodeData.height + 140 // Vertical padding + Header height
+        width: nodeData.width + 120, // 60px padding on each side
+        height: nodeData.height + 180, // 100px top (header) + 80px bottom
       };
     }
 

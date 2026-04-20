@@ -50,7 +50,8 @@ import {
     AlertCircle,
     CheckSquare,
     CheckCircle,
-    GitBranch
+    GitBranch,
+    XCircle
 } from 'lucide-react';
 import { getAutomationArchitecture } from '../../services/api';
 import { getLayoutedElements } from '../layout/Dagre';
@@ -107,16 +108,19 @@ const TypeGroupNode = ({ data }) => {
 
     return (
         <div className={`w-full h-full border-2 rounded-[2.5rem] shadow-sm relative overflow-hidden ${colors[color] || colors.indigo}`}>
-            <div className={`absolute top-0 left-0 right-0 h-16 ${headerColors[color] || headerColors.indigo} flex items-center px-8 gap-3 shadow-md`}>
-                <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md ring-1 ring-white/30">
-                    {data.icon && <data.icon size={20} className="text-white" />}
+            <div className={`absolute top-0 left-0 right-0 h-24 ${headerColors[color] || headerColors.indigo} flex items-center px-10 gap-5 shadow-lg`}>
+                <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md ring-1 ring-white/30">
+                    {data.icon && <data.icon size={32} className="text-white" />}
                 </div>
-                <h3 className="text-lg font-black uppercase tracking-[0.2em] text-white leading-none">
+                <h3 className="text-4xl font-black uppercase tracking-[0.1em] text-white leading-none">
                     {label}
                 </h3>
             </div>
-            <div className="pt-20 pb-8 px-8 h-full">
+            <div className="pt-32 pb-8 px-8 h-full">
                 {/* Content will be nested nodes */}
+                {data.isDimmed && (
+                    <div className="absolute inset-0 bg-slate-900/5 backdrop-blur-[1px] pointer-events-none" />
+                )}
             </div>
         </div>
     );
@@ -128,29 +132,47 @@ const ProcessStepNode = ({ data }) => {
     const handleOffsets = ['10%', '30%', '50%', '70%', '90%'];
 
     return (
-        <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xl flex items-center gap-4 min-w-[280px] max-w-[340px] group transition-all hover:scale-[1.02] hover:shadow-2xl relative border-l-4 border-l-rose-500">
+        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xl flex items-center gap-6 min-w-[420px] max-w-[500px] group transition-all hover:scale-[1.02] hover:shadow-2xl relative border-l-8 border-l-rose-500">
             {/* Multi-Target Handles (Top) */}
             {handleOffsets.map((offset, i) => (
-                <Handle 
+                <Handle
                     key={`t-${i}`}
                     id={`t-${i}`}
-                    type="target" 
-                    position={Position.Top} 
+                    type="target"
+                    position={Position.Top}
                     style={{ left: offset }}
-                    className="!w-2 !h-2 !bg-slate-300 border-2 border-white opacity-0 group-hover:opacity-100 transition-opacity" 
+                    className="!w-2 !h-2 !bg-slate-300 border-2 border-white opacity-0 group-hover:opacity-100 transition-opacity"
                 />
             ))}
-            
-            <div className="p-2.5 rounded-xl bg-slate-50 shadow-inner group-hover:bg-red-50 transition-colors">
-                <Icon className="text-rose-500" size={24} strokeWidth={2.5} />
+
+
+            {/* Selection/Highlight State for Process Nodes */}
+            {data.isHighlighted && (
+                <div className="absolute inset-0 rounded-2xl ring-4 ring-brand-500 ring-offset-4 animate-pulse pointer-events-none" />
+            )}
+            {data.isDimmed && (
+                <div className="absolute inset-0 rounded-2xl bg-slate-900/5 backdrop-blur-[1px] pointer-events-none" />
+            )}
+
+            <Handle
+                key={`s-0`}
+                id={`s-0`}
+                type="source"
+                position={Position.Bottom}
+                style={{ left: '50%' }}
+                className="!w-2 !h-2 !bg-slate-300 border-2 border-white opacity-0 group-hover:opacity-100 transition-opacity"
+            />
+
+            <div className="p-4 rounded-2xl bg-slate-50 shadow-inner group-hover:bg-red-50 transition-colors">
+                <Icon className="text-rose-500" size={32} strokeWidth={2.5} />
             </div>
-            
-            <div className="flex flex-col gap-0.5 pr-2">
-                <h5 className="font-extrabold text-lg text-slate-900 leading-tight tracking-tight">
+
+            <div className="flex flex-col gap-1 pr-2">
+                <h5 className="font-extrabold text-4xl text-slate-950 leading-tight tracking-tight">
                     {title}
                 </h5>
                 {description && (
-                    <p className="text-sm text-slate-500 font-medium leading-relaxed line-clamp-2">
+                    <p className={`text-2xl font-semibold leading-relaxed line-clamp-2 transition-colors ${data.isDimmed ? 'text-slate-400' : 'text-slate-600'}`}>
                         {description}
                     </p>
                 )}
@@ -158,13 +180,13 @@ const ProcessStepNode = ({ data }) => {
 
             {/* Multi-Source Handles (Bottom) */}
             {handleOffsets.map((offset, i) => (
-                <Handle 
+                <Handle
                     key={`s-${i}`}
                     id={`s-${i}`}
-                    type="source" 
-                    position={Position.Bottom} 
+                    type="source"
+                    position={Position.Bottom}
                     style={{ left: offset }}
-                    className="!w-2 !h-2 !bg-slate-300 border-2 border-white opacity-0 group-hover:opacity-100 transition-opacity" 
+                    className="!w-2 !h-2 !bg-slate-300 border-2 border-white opacity-0 group-hover:opacity-100 transition-opacity"
                 />
             ))}
         </div>
@@ -186,6 +208,8 @@ function ArchitectureFlowContent({ suggestionId }) {
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [highlightedNodes, setHighlightedNodes] = useState([]);
+    const [selectedEdgeInfo, setSelectedEdgeInfo] = useState(null);
 
     const transformArchitectureData = useCallback((apiData) => {
         const rawNodes = apiData.nodes || [];
@@ -219,12 +243,12 @@ function ArchitectureFlowContent({ suggestionId }) {
             finalNodes.push({
                 id: groupId,
                 type: 'groupNode',
-                data: { 
-                    label: type.toUpperCase(), 
+                data: {
+                    label: type.toUpperCase(),
                     color: config.color,
                     icon: config.icon
                 },
-                position: { x: 0, y: 0 }, 
+                position: { x: 0, y: 0 },
                 style: { width: 600, height: 400 },
             });
 
@@ -239,11 +263,11 @@ function ArchitectureFlowContent({ suggestionId }) {
                     data: {
                         title: node.data?.label || node.data?.title || 'Unknown',
                         description: node.data?.description || '',
-                        icon: (id.includes('verification') || id.includes('validation') || id.includes('match') || id.includes('check')) ? ShieldCheck : 
-                              (id.includes('erp') || id.includes('finance')) ? Database : 
-                              (id.includes('gateway') || id.includes('api')) ? Zap : 
-                              (id.includes('ocr') || id.includes('nlp')) ? Brain : 
-                              (type === 'input') ? Mail : Bot
+                        icon: (id.includes('verification') || id.includes('validation') || id.includes('match') || id.includes('check')) ? ShieldCheck :
+                            (id.includes('erp') || id.includes('finance')) ? Database :
+                                (id.includes('gateway') || id.includes('api')) ? Zap :
+                                    (id.includes('ocr') || id.includes('nlp')) ? Brain :
+                                        (type === 'input') ? Mail : Bot
                     }
                 });
             });
@@ -254,41 +278,44 @@ function ArchitectureFlowContent({ suggestionId }) {
 
         const mappedEdges = edgeList.map(edge => {
             const styleMeta = getEdgeStyle(edge.label || '');
-            
+
             // Distribute handles to prevent trunking
             const sCount = sourceCounts[edge.source] || 0;
             const tCount = targetCounts[edge.target] || 0;
-            
+
+            const isOrchestration = edge.isOrchestration;
+
             const edgeResult = {
                 ...edge,
                 type: 'step',
                 sourceHandle: `s-${sCount % 5}`,
                 targetHandle: `t-${tCount % 5}`,
                 label: (edge.label || '').toUpperCase(),
-                labelStyle: { 
-                    fill: styleMeta.labelColor, 
-                    fontWeight: 900, 
-                    fontSize: 11,
-                    letterSpacing: '0.05em' 
+                labelStyle: {
+                    fill: isOrchestration ? '#a855f7' : styleMeta.labelColor,
+                    fontWeight: 800,
+                    fontSize: 32,
+                    letterSpacing: '0.02em'
                 },
-                labelBgStyle: { 
-                    fill: '#ffffff', 
-                    fillOpacity: 0.95, 
-                    padding: 6,
-                    rx: 4,
+                labelBgStyle: {
+                    fill: '#ffffff',
+                    fillOpacity: 0.98,
+                    padding: 12,
+                    rx: 10,
                 },
-                labelBgPadding: [6, 4],
+                labelBgPadding: [16, 12],
                 markerEnd: {
                     type: MarkerType.ArrowClosed,
-                    color: styleMeta.stroke,
+                    color: isOrchestration ? '#a855f7' : styleMeta.stroke,
                     width: 20,
                     height: 20,
                 },
                 style: {
-                    stroke: styleMeta.stroke,
-                    strokeWidth: styleMeta.strokeWidth,
+                    stroke: isOrchestration ? '#a855f7' : styleMeta.stroke,
+                    strokeWidth: isOrchestration ? 6 : 5,
+                    strokeDasharray: isOrchestration ? '5 5' : 'none',
                 },
-                animated: styleMeta.animated
+                animated: isOrchestration ? true : styleMeta.animated
             };
 
             sourceCounts[edge.source] = sCount + 1;
@@ -318,6 +345,11 @@ function ArchitectureFlowContent({ suggestionId }) {
                     const { nodes: transformedNodes, edges: transformedEdges } = transformArchitectureData(data);
                     setNodes(transformedNodes);
                     setEdges(transformedEdges);
+
+                    // Trigger a stable fitView after nodes are set and layout is applied
+                    setTimeout(() => {
+                        fitView({ padding: 0.15, duration: 800, minZoom: 0.01, maxZoom: 1.2 });
+                    }, 500);
                 } else {
                     setError('No architecture data found for this suggestion');
                 }
@@ -336,6 +368,39 @@ function ArchitectureFlowContent({ suggestionId }) {
     const containerRef = useRef(null);
     const { fitView } = useReactFlow();
 
+    const onEdgeClick = useCallback((event, edge) => {
+        setHighlightedNodes([edge.source, edge.target]);
+
+        // Find node labels for the info overlay
+        const sourceNode = nodes.find(n => n.id === edge.source);
+        const targetNode = nodes.find(n => n.id === edge.target);
+
+        setSelectedEdgeInfo({
+            id: edge.id,
+            label: edge.label || 'Connection',
+            source: sourceNode?.data?.title || 'Unknown Source',
+            sourceType: sourceNode?.type === 'groupNode' ? 'Cluster' : 'Step',
+            sourceIcon: sourceNode?.data?.icon,
+            target: targetNode?.data?.title || 'Unknown Target',
+            targetType: targetNode?.type === 'groupNode' ? 'Cluster' : 'Step',
+            targetIcon: targetNode?.data?.icon,
+            accentColor: (sourceNode?.data?.color === 'indigo' ? '#6366f1' :
+                sourceNode?.data?.color === 'purple' ? '#a855f7' :
+                    sourceNode?.data?.color === 'amber' ? '#f59e0b' :
+                        sourceNode?.data?.color === 'emerald' ? '#10b981' : '#6366f1')
+        });
+    }, [nodes]);
+
+    const onPaneClick = useCallback(() => {
+        setHighlightedNodes([]);
+        setSelectedEdgeInfo(null);
+    }, []);
+
+    const onNodeClick = useCallback(() => {
+        setHighlightedNodes([]);
+        setSelectedEdgeInfo(null);
+    }, []);
+
     const toggleFullscreen = useCallback(() => {
         if (!containerRef.current) return;
         if (!document.fullscreenElement) {
@@ -350,7 +415,7 @@ function ArchitectureFlowContent({ suggestionId }) {
     useEffect(() => {
         const handleFullscreenChange = () => {
             setIsFullscreen(!!document.fullscreenElement);
-            setTimeout(() => fitView({ duration: 800, padding: 0.1 }), 100);
+            setTimeout(() => fitView({ duration: 800, padding: 0.15, minZoom: 0.01 }), 200);
         };
         document.addEventListener('fullscreenchange', handleFullscreenChange);
         return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
@@ -385,10 +450,41 @@ function ArchitectureFlowContent({ suggestionId }) {
                 }`}
         >
             <ReactFlow
-                nodes={nodes}
-                edges={edges}
+                nodes={nodes.map(node => {
+                    const isHighlighted = highlightedNodes.includes(node.id);
+                    const isDimmed = highlightedNodes.length > 0 && !isHighlighted;
+                    return {
+                        ...node,
+                        data: { ...node.data, isHighlighted, isDimmed }
+                    };
+                })}
+                edges={edges.map(edge => {
+                    const isSelected = selectedEdgeInfo?.id === edge.id;
+                    const isDimmed = !!selectedEdgeInfo && !isSelected;
+
+                    return {
+                        ...edge,
+                        animated: isSelected ? true : edge.animated,
+                        style: {
+                            ...edge.style,
+                            opacity: isDimmed ? 0.2 : 1,
+                            strokeWidth: isSelected ? 5 : (edge.style?.strokeWidth || 2.5),
+                            filter: isSelected ? 'drop-shadow(0 0 12px rgba(99, 102, 241, 0.4))' : 'none',
+                            transition: 'all 0.4s ease',
+                            stroke: isSelected ? '#6366f1' : (edge.style?.stroke || '#000000')
+                        },
+                        markerEnd: typeof edge.markerEnd === 'object' ? {
+                            ...edge.markerEnd,
+                            color: isSelected ? '#6366f1' : (edge.markerEnd?.color || '#000000'),
+                            opacity: isDimmed ? 0.2 : 1
+                        } : edge.markerEnd
+                    };
+                })}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
+                onEdgeClick={onEdgeClick}
+                onPaneClick={onPaneClick}
+                onNodeClick={onNodeClick}
                 nodeTypes={nodeTypes}
                 fitView
                 minZoom={0.05}
@@ -404,6 +500,55 @@ function ArchitectureFlowContent({ suggestionId }) {
                         </div>
                     </ControlButton>
                 </Controls>
+
+                {/* Selection Overlay */}
+                {selectedEdgeInfo && (
+                    <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in zoom-in slide-in-from-top-6 duration-300">
+                        <div className="bg-white/95 backdrop-blur-xl shadow-[0_20px_50px_-15px_rgba(0,0,0,0.3)] rounded-2xl px-4 py-3 flex items-center gap-6 border border-white/50 ring-1 ring-slate-900/5">
+                            {/* Source Node Info */}
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-xl bg-slate-50 shadow-inner" style={{ color: selectedEdgeInfo.accentColor }}>
+                                    {selectedEdgeInfo.sourceIcon && <selectedEdgeInfo.sourceIcon size={20} className="stroke-[2.5]" />}
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.15em] mb-0.5">{selectedEdgeInfo.sourceType}</span>
+                                    <span className="text-[13px] font-bold text-slate-800 leading-tight max-w-[140px]">{selectedEdgeInfo.source}</span>
+                                </div>
+                            </div>
+
+                            {/* Edge/Connection Info */}
+                            <div className="flex flex-col items-center gap-2">
+                                <div className="bg-brand-50/50 px-2 py-0.5 rounded-full border border-brand-100 shadow-sm">
+                                    <span className="text-[9px] font-black text-black uppercase tracking-[0.1em] whitespace-nowrap">
+                                        {selectedEdgeInfo.label}
+                                    </span>
+                                </div>
+                                <div className="h-0.5 w-12 bg-gradient-to-r from-transparent via-brand-500 to-transparent relative">
+                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-brand-500 rounded-full shadow-[0_0_10px_rgba(99,102,241,0.6)] animate-pulse"></div>
+                                </div>
+                            </div>
+
+                            {/* Target Node Info */}
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-xl bg-slate-50 shadow-inner text-brand-500">
+                                    {selectedEdgeInfo.targetIcon && <selectedEdgeInfo.targetIcon size={20} className="stroke-[2.5]" />}
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.15em] mb-0.5">{selectedEdgeInfo.targetType}</span>
+                                    <span className="text-[13px] font-bold text-slate-800 leading-tight max-w-[140px]">{selectedEdgeInfo.target}</span>
+                                </div>
+                            </div>
+
+                            {/* Close Button */}
+                            <button
+                                onClick={onPaneClick}
+                                className="p-1.5 hover:bg-red-50 hover:text-red-500 text-slate-300 rounded-lg transition-all duration-300 group"
+                            >
+                                <XCircle size={18} className="group-hover:rotate-90 transition-transform duration-500" />
+                            </button>
+                        </div>
+                    </div>
+                )}
             </ReactFlow>
         </div>
     );
