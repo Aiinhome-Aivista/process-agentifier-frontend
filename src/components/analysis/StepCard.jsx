@@ -64,19 +64,19 @@ export default function StepCard({ step, index, isLast, isSelected, onClick }) {
     : (STEP_TYPE_COLORS[step.step_type?.toLowerCase()] || STEP_TYPE_COLORS.manual);
 
   return (
-    <div className="flex items-stretch gap-3 shrink-0 w-72">
+    <div className="shrink-0 w-full h-[230px]">
       {/* Card */}
       <div
         onClick={onClick}
         className={clsx(
-          "card p-4 w-full flex flex-col cursor-pointer transition-all duration-200 animate-slide-up group",
+          "card p-4 w-full h-full flex flex-col cursor-pointer transition-all duration-200 animate-slide-up group",
           isSelected
             ? "bg-white/[0.08] ring-1 ring-brand-500/30"
             : "hover:bg-white/[0.08] hover:ring-1 hover:ring-brand-500/30"
         )}
         style={{ animationDelay: `${index * 60}ms` }}>
         {/* Header */}
-        <div className="flex items-center justify-between gap-2 mb-2 min-w-0">
+        <div className="flex items-center justify-between gap-2 mb-3 min-w-0">
           <span className="text-xs font-medium text-white/40 uppercase tracking-wide shrink-0 whitespace-nowrap">
             Step {step.step_number}
           </span>
@@ -90,19 +90,21 @@ export default function StepCard({ step, index, isLast, isSelected, onClick }) {
         </div>
 
         {/* Title */}
-        <h3 className="font-semibold text-white/90 text-sm leading-snug mb-1 group-hover:text-brand-400 transition-colors">
+        <h3 className="font-semibold text-white/90 text-sm leading-normal mb-2 group-hover:text-brand-400 transition-colors line-clamp-2">
           {step.title}
         </h3>
-        <p className="text-xs text-white/50 leading-relaxed line-clamp-3">
+        <p className="text-xs text-white/50 leading-relaxed line-clamp-3 mb-2">
           {step.description}
         </p>
 
         {/* Step type */}
-        <div className={clsx('mt-3 inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-md border', typeColor)}>
-          <Icon size={10} />{step.step_type}
+        <div className="mt-auto">
+          <div className={clsx('inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-md border', typeColor)}>
+            <Icon size={10} />{step.step_type}
+          </div>
         </div>
 
-        <div className="mt-auto pt-2">
+        <div className="">
           <AutomationBar value={step.automation_potential} automation_reasoning={step.automation_reasoning} />
         </div>
 
@@ -113,15 +115,6 @@ export default function StepCard({ step, index, isLast, isSelected, onClick }) {
           </p>
         )}
       </div>
-
-      {/* Arrow connector */}
-      {!isLast && (
-        <div className="flex items-center self-center shrink-0 mt-4">
-          <div className="w-6 h-px bg-white" />
-          <div className="w-0 h-0 border-t-4 border-b-4 border-l-4
-              border-t-transparent border-b-transparent border-l-white" />
-        </div>
-      )}
     </div>
   )
 }

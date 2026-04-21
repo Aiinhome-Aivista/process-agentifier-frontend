@@ -129,7 +129,7 @@ function transformFlowData(apiData) {
   const mappedNodes = rawNodes.map((node) => {
     const nodeType = (node.type || '').toLowerCase();
     const isAgentId = node.id?.toString().toLowerCase().includes('agent');
-    
+
     // Automatic Agent Normalization
     if (nodeType.includes('agentnode') || nodeType.includes('bot') || isAgentId) {
       const rawTasks = node.data?.tasks || (node.data?.description ? [node.data.description] : ['Automates related process steps']);
@@ -369,11 +369,11 @@ function ProcessNode({ data, targetPosition, sourcePosition }) {
           onMouseEnter={() => setShowTooltip(true)}
           onMouseLeave={() => setShowTooltip(false)}
         >
-          <div 
+          <div
             className={`bg-white rounded-full p-2 shadow-xl border-2 border-emerald-600 transition-all duration-500 hover:scale-110 ${isOpen ? 'rotate-90 bg-slate-50 scale-110' : ''}`}
-           
+
           >
-            <GitBranch size={20} className='text-emerald-600'/>
+            <GitBranch size={20} className='text-emerald-600' />
           </div>
 
           {/* Rich Agent Box Popover - On Hover Preview */}
@@ -402,7 +402,7 @@ function ProcessNode({ data, targetPosition, sourcePosition }) {
               <ul className="space-y-3">
                 {agenticInfo?.tasks.map((task, i) => (
                   <li key={i} className="flex items-start gap-3 group/item">
-                    <div 
+                    <div
                       className="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 shadow-sm"
                       style={{ backgroundColor: agenticInfo?.accentColor || accentColor, boxShadow: `0 0 8px ${agenticInfo?.accentColor || accentColor}80` }}
                     />
@@ -485,7 +485,7 @@ function AgentGroupNode({ data }) {
       <div
         className="absolute top-0 left-0 right-0 text-white px-6 py-4 text-base font-black flex items-center gap-3 shadow-lg z-10"
         style={{
-          background: `linear-gradient(90deg, ${accentColor}, ${accentColor}dd)`
+          background: 'linear-gradient(90deg, #475569, #334155)'
         }}
       >
         <div className="bg-white/20 p-1.5 rounded-lg">
@@ -763,7 +763,7 @@ function AgenticFlowContent({ suggestionId }) {
 
   if (loading) {
     return (
-      <div className="w-full h-[600px] border border-slate-200 rounded-2xl flex items-center justify-center bg-slate-50">
+      <div className={`w-full border border-slate-200 rounded-3xl flex items-center justify-center bg-slate-50 transition-all duration-300 ${isFullscreen ? 'h-screen' : 'h-[600px]'}`}>
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
           <p className="text-sm font-medium text-slate-500">Loading automation workflow...</p>
@@ -774,8 +774,8 @@ function AgenticFlowContent({ suggestionId }) {
 
   if (error) {
     return (
-      <div className="w-full h-[600px] border border-slate-200 rounded-2xl flex items-center justify-center bg-slate-50">
-        <div className="flex flex-col items-center gap-3 text-red-500">
+      <div className={`w-full border border-slate-200 rounded-3xl flex items-center justify-center bg-slate-50 transition-all duration-300 ${isFullscreen ? 'h-screen' : 'h-[600px]'}`}>
+        <div className="flex flex-col items-center gap-3 text-red-500 p-8 text-center max-w-md">
           <AlertCircle className="w-8 h-8" />
           <p className="text-sm font-medium">Failed to load workflow: {error}</p>
         </div>
@@ -785,7 +785,7 @@ function AgenticFlowContent({ suggestionId }) {
 
   if (!loading && nodes.length === 0) {
     return (
-      <div className="w-full h-[600px] border border-slate-200 rounded-2xl flex flex-col items-center justify-center bg-slate-50 gap-4">
+      <div className={`w-full border border-slate-200 rounded-3xl flex flex-col items-center justify-center bg-slate-50 gap-4 transition-all duration-300 ${isFullscreen ? 'h-screen' : 'h-[600px]'}`}>
         <div className="bg-white p-6 rounded-full shadow-inner">
           <Layers className="w-12 h-12 text-slate-300" />
         </div>
@@ -800,7 +800,7 @@ function AgenticFlowContent({ suggestionId }) {
   return (
     <div
       ref={containerRef}
-      className={`w-full border border-slate-200 rounded-2xl overflow-hidden relative bg-slate-50 transition-all duration-300 ${isFullscreen ? 'h-screen w-screen rounded-none' : 'h-[600px]'
+      className={`w-full border border-slate-200 rounded-3xl overflow-hidden relative bg-slate-50 transition-all duration-500 shadow-2xl ${isFullscreen ? 'h-screen w-screen rounded-none' : 'h-[600px]'
         }`}
     >
       <ReactFlow

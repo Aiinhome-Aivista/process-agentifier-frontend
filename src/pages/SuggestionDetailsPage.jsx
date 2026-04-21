@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Cpu, CheckCircle2, ChevronDown } from 'lucide-react'
+import { Cpu, CheckCircle2, ChevronDown, Workflow } from 'lucide-react'
 import StepCard from '../components/analysis/StepCard'
 import SuggestionCard from '../components/automation/SuggestionCard'
 import AgenticWorkflow from '../components/automation/AgenticWorkflow'
@@ -147,8 +147,13 @@ export default function SuggestionDetailsPage() {
         >
           <SuggestionCard suggestion={suggestion} index={0} hideChip />
         </div>
-        {/* Agentic Workflow Card */}
-        <AgenticWorkflow suggestionId={id} />
+        {/* Agentic Workflow Section */}
+        <div
+          className="opacity-0 animate-slide-up"
+          style={{ animationDelay: '800ms', animationFillMode: 'both' }}
+        >
+          <AgenticWorkflowCard suggestionId={id} />
+        </div>
 
         {/* Architecture Card (Hardcoded) */}
         {/* <div
@@ -165,6 +170,25 @@ export default function SuggestionDetailsPage() {
         >
           <AgentDeploymentCard suggestionId={id} />
         </div>
+      </div>
+    </div>
+  )
+}
+
+function AgenticWorkflowCard({ suggestionId }) {
+  return (
+    <div className="card p-8 border-brand-500/20 bg-gradient-to-b from-white/5 to-transparent">
+      <div className="flex items-center gap-3 mb-8">
+        <div className="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center">
+          <Workflow size={20} className="text-brand-500" />
+        </div>
+        <div>
+          <h2 className="text-xl font-bold text-white/90 uppercase tracking-tight">Agentic Process Workflow</h2>
+          <p className="text-[10px] text-white/40 uppercase tracking-widest font-semibold">Operating Model: Agentic Operations</p>
+        </div>
+      </div>
+      <div className="rounded-2xl overflow-hidden border border-white/5 shadow-2xl bg-black/40">
+        <AgenticWorkflow suggestionId={suggestionId} />
       </div>
     </div>
   )

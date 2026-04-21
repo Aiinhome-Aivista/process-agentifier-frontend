@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useLayoutEffect } from 'react'
-import { ChevronRight, ChevronLeft, TrendingUp, ArrowLeft, Zap } from 'lucide-react'
+import { ChevronRight, ChevronLeft, TrendingUp, ArrowLeft, Zap, RefreshCw, Loader2 } from 'lucide-react'
 import { usePDF } from '../../context/PdfContext'
 import clsx from 'clsx'
 import StepCard from './StepCard'
@@ -59,9 +59,30 @@ function TopTarget({ item, rank }) {
 export default function OverviewTab({ insights, topTargets, steps, suggestions }) {
   const isPdf = usePDF()
   const scrollRef = useRef()
+  const detailRef = useRef(null)
   const [selectedStep, setSelectedStep] = useState(null)
   const [displayStep, setDisplayStep] = useState(null)
   const [isTransitioning, setIsTransitioning] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+
+  const handleRefresh = () => {
+    setIsRefreshing(true)
+    setTimeout(() => {
+      setIsRefreshing(false)
+    }, 3500)
+  }
+
+  // Auto-scroll to detail section when a step is selected
+  useEffect(() => {
+    if (selectedStep && detailRef.current) {
+      setTimeout(() => {
+        detailRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }, 100);
+    }
+  }, [selectedStep]);
 
   // Auto-scroll to top on mount (Instant reset before paint)
   useLayoutEffect(() => {
@@ -195,47 +216,112 @@ export default function OverviewTab({ insights, topTargets, steps, suggestions }
       {/* Process Map section */}
       {steps?.length > 0 && (
         <div className="flex flex-col bg-white/[0.02] border border-white/5 rounded-3xl p-6 backdrop-blur-sm shadow-2xl">
-          {/* ── MAP VIEW ── */}
           <div className="transition-all duration-400 ease-out">
-            <div className="space-y-6">
-              <h2 className="text-base font-semibold text-white/90">Process Mapping</h2>
-
-              <div className="relative group/scroll">
-                {/* Navigation Buttons Overlay */}
-                <div className="absolute inset-x-0 top-0 bottom-4 pointer-events-none z-20 flex items-center justify-between mt-4">
-                  <button
-                    onClick={() => scroll(-1)}
-                    className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-md border border-white/20
-                        flex items-center justify-center hover:bg-white/20 transition-all -translate-x-4
-                        pointer-events-auto shadow-xl"
-                  >
-                    <ChevronLeft size={16} className="text-white" />
-                  </button>
-
-                  <button
-                    onClick={() => scroll(1)}
-                    className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-md border border-white/20
-                        flex items-center justify-center hover:bg-white/20 transition-all translate-x-4
-                        pointer-events-auto shadow-xl"
-                  >
-                    <ChevronRight size={16} className="text-white" />
-                  </button>
-                </div>
-
-                <div
-                  ref={scrollRef}
-                  className="flex items-stretch gap-4 pb-12 scroll-smooth scrollbar-custom px-2 overflow-x-auto"
+            <div className="">
+              <div className="flex items-center gap-4">
+                <h2 className="text-base font-semibold text-white/90">Process Mapping</h2>
+                <button
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
+                  className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 
+                      transition-all duration-200 group flex items-center gap-2"
+                  title="Refresh process mapping"
                 >
-                  {steps.map((step, i) => (
-                    <StepCard
-                      key={step.id || i}
-                      step={step}
-                      index={i}
-                      isSelected={selectedStep?.id === step.id}
-                      isLast={i === steps.length - 1}
-                      onClick={() => selectedStep?.id === step.id ? handleBack() : handleSelectStep(step)}
-                    />
-                  ))}
+                  <RefreshCw
+                    size={14}
+                    className={clsx(
+                      "text-white/40 group-hover:text-white/80 transition-all",
+                      isRefreshing && "animate-spin"
+                    )}
+                  />
+                  {/* {isRefreshing && (
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-white/40">
+                      Refreshing...
+                    </span>
+                  )} */}
+                </button>
+              </div>
+
+              <div className="relative min-h-[400px]">
+                {isRefreshing && (
+                  <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-50/10 backdrop-blur-md rounded-2xl animate-fade-in border border-white/5">
+                    <div className="flex flex-col items-center gap-3">
+                      <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
+                      <p className="text-sm font-medium text-white/60">Loading process mapping...</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className={clsx("flex flex-col gap-y-10 mt-8", isRefreshing && " bg-black/20 opacity-25 backdrop-blur-md transition-all duration-500")}>
+                {(() => {
+                  const chunkedSteps = [];
+                  for (let i = 0; i < steps.length; i += 4) {
+                    chunkedSteps.push(steps.slice(i, i + 4));
+                  }
+
+                  return chunkedSteps.map((chunk, rowIndex) => {
+                    const isReversed = rowIndex % 2 !== 0;
+                    const displaySteps = isReversed ? [...chunk].reverse() : chunk;
+
+                    return (
+                      <div key={rowIndex} className="relative">
+                        <div className="grid grid-cols-4 gap-x-12 gap-y-16">
+                          {displaySteps.map((step, i) => {
+                            const isFirstInRow = i === 0;
+                            const isLastInRow = i === displaySteps.length - 1;
+
+                            
+                            const showHorizontalArrow = isReversed ? i > 0 : i < displaySteps.length - 1;
+                            const showVerticalArrow = (isReversed ? i === 0 : i === displaySteps.length - 1) && rowIndex < chunkedSteps.length - 1;
+
+                            return (
+                              <div key={step.id || i} className="relative group/step">
+                                <StepCard
+                                  step={step}
+                                  index={rowIndex * 4 + i}
+                                  isSelected={selectedStep?.id === step.id}
+                                  isLast={step.id === steps[steps.length - 1].id}
+                                  onClick={() => selectedStep?.id === step.id ? handleBack() : handleSelectStep(step)}
+                                />
+
+                                {/* Horizontal Arrow */}
+                                {showHorizontalArrow && (
+                                  <div className={clsx(
+                                    "absolute top-1/2 -translate-y-1/2 z-10 flex items-center",
+                                    isReversed ? "-left-10" : "-right-10"
+                                  )}>
+                                    {isReversed ? (
+                                      <div className="flex items-center">
+                                        <div className="w-0 h-0 border-t-4 border-b-4 border-r-4
+                                            border-t-transparent border-b-transparent border-r-white" />
+                                        <div className="w-6 h-px bg-white" />
+                                      </div>
+                                    ) : (
+                                      <div className="flex items-center">
+                                        <div className="w-6 h-px bg-white" />
+                                        <div className="w-0 h-0 border-t-4 border-b-4 border-l-4
+                                            border-t-transparent border-b-transparent border-l-white" />
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+
+                                {/* Vertical Arrow */}
+                                {showVerticalArrow && (
+                                  <div className="absolute -bottom-9 left-1/2 -translate-x-1/2 flex flex-col items-center">
+                                    <div className="w-px h-6 bg-white" />
+                                    <div className="w-0 h-0 border-l-4 border-r-4 border-t-4
+                                        border-l-transparent border-r-transparent border-t-white" />
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
                 </div>
               </div>
             </div>
@@ -243,6 +329,7 @@ export default function OverviewTab({ insights, topTargets, steps, suggestions }
 
           {/* ── DETAIL VIEW (Expanding Suggestion Card) ── */}
           <div
+            ref={detailRef}
             className={clsx(
               "grid transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
               selectedStep
