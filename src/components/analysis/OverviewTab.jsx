@@ -275,7 +275,11 @@ export default function OverviewTab({ insights, topTargets, steps, suggestions }
                             const showVerticalArrow = (isReversed ? i === 0 : i === displaySteps.length - 1) && rowIndex < chunkedSteps.length - 1;
 
                             return (
-                              <div key={step.id || i} className="relative group/step">
+                              <div
+                                key={step.id || i}
+                                className="relative group/step"
+                                style={isReversed && i === 0 ? { gridColumnStart: 4 - chunk.length + 1 } : {}}
+                              >
                                 <StepCard
                                   step={step}
                                   index={rowIndex * 4 + i}

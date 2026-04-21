@@ -64,7 +64,7 @@ export default function StepCard({ step, index, isLast, isSelected, onClick }) {
     : (STEP_TYPE_COLORS[step.step_type?.toLowerCase()] || STEP_TYPE_COLORS.manual);
 
   return (
-    <div className="shrink-0 w-full h-[230px]">
+    <div className="shrink-0 w-full h-[240px]">
       {/* Card */}
       <div
         onClick={onClick}
@@ -93,7 +93,7 @@ export default function StepCard({ step, index, isLast, isSelected, onClick }) {
         <h3 className="font-semibold text-white/90 text-sm leading-normal mb-2 group-hover:text-brand-400 transition-colors line-clamp-2">
           {step.title}
         </h3>
-        <p className="text-xs text-white/50 leading-relaxed line-clamp-3 mb-2">
+        <p className="text-xs text-white/50 leading-relaxed line-clamp-3 mb-auto">
           {step.description}
         </p>
 
@@ -104,7 +104,7 @@ export default function StepCard({ step, index, isLast, isSelected, onClick }) {
           </div>
         </div>
 
-        <div className="">
+        <div className="mt-auto">
           <AutomationBar value={step.automation_potential} automation_reasoning={step.automation_reasoning} />
         </div>
 
