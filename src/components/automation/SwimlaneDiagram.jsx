@@ -1,116 +1,18 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
-import { ZoomIn, ZoomOut, Maximize, Maximize2, Minimize2, RefreshCw, GitBranch, Bot, Layers, CheckCircle } from "lucide-react";
+import { ZoomIn, ZoomOut, Maximize, Maximize2, Minimize2, RefreshCw, Loader2, GitBranch, Bot, Layers, CheckCircle } from "lucide-react";
+import { getProcessFlow } from "../../services/api";
+
 
 /* ═══════════════════════════════════════════════════════════
    SAMPLE JSON  — replace with your real API/backend call
 ═══════════════════════════════════════════════════════════ */
 export const sampleDiagramData = {
-  title: "Manufacture of curd",
-  lanes: [
-    {
-      id: "admin",
-      label: "Administrative\nManager",
-      nodes: [
-        { id: "start", type: "start", label: "", color: "pink", column: 0 },
-        {
-          id: "order_pickup",
-          type: "process",
-          label: "Order\npickup",
-          color: "blue",
-          column: 1,
-          agentInfo: {
-            title: "Validation Agent",
-            type: "Automation Bot",
-            tasks: [
-              "Checks order consistency",
-              "Validates customer credit",
-              "Triggers pickup sequence"
-            ],
-            accentColor: "#10B981"
-          }
-        }
-      ]
-    },
-    {
-      id: "warehouse",
-      label: "Warehouse",
-      nodes: [
-        {
-          id: "curd_ingredients",
-          type: "process",
-          label: "Curd\nIngredients",
-          color: "blue",
-          column: 1,
-          agentInfo: {
-            title: "Inventory Optimizer",
-            type: "Supply Chain Bot",
-            tasks: [
-              "Optimizes batch sizes",
-              "Monitors shelf life",
-              "Auto-requests refills"
-            ],
-            accentColor: "#3B82F6"
-          }
-        }
-      ]
-    },
-    {
-      id: "quality",
-      label: "Quality Sector",
-      nodes: [
-        {
-          id: "product_analysis",
-          type: "process",
-          label: "Product\nanalysis",
-          color: "blue",
-          column: 1,
-          agentInfo: {
-            title: "QC Inspector",
-            type: "Neural QA Bot",
-            tasks: [
-              "Analyzes PH balances",
-              "Detects impurities",
-              "Generates batch report"
-            ],
-            accentColor: "#EF4444"
-          }
-        },
-        { id: "approved_diamond", type: "decision", label: "Approved?", color: "yellow", column: 2 }
-      ]
-    },
-    {
-      id: "production",
-      label: "Production",
-      nodes: [
-        { id: "casting", type: "process", label: "Casting at\nStephan", color: "green", column: 0 },
-        { id: "lung_tank", type: "process", label: "Lung Tank", color: "green", column: 1 },
-        { id: "packaging", type: "process", label: "Packaging", color: "green", column: 2 }
-      ]
-    },
-    {
-      id: "expedition",
-      label: "Expedition",
-      nodes: [
-        { id: "label_carton", type: "process", label: "Label the carton", color: "orange", column: 0 },
-        { id: "expedition_node", type: "process", label: "Expedition", color: "orange", column: 1 },
-        { id: "transport_delivery", type: "process", label: "Transport/Delivery", color: "orange", column: 2 }
-      ]
-    }
-  ],
-  flow: [
-    { from: "start", to: "order_pickup", type: "inline", label: "START" },
-    { from: "order_pickup", to: "curd_ingredients", type: "down", label: "PROCEED" },
-    { from: "curd_ingredients", to: "product_analysis", type: "down", label: "ANALYZE" },
-    { from: "product_analysis", to: "approved_diamond", type: "inline", label: "VALIDATE" },
-    { from: "approved_diamond", to: "casting", type: "yes", label: "YES" },
-    { from: "approved_diamond", to: "curd_ingredients", type: "no", label: "NO" },
-    { from: "casting", to: "lung_tank", type: "inline", label: "TRANSFER" },
-    { from: "lung_tank", to: "packaging", type: "inline", label: "FINALIZE" },
-    { from: "packaging", to: "label_carton", type: "diagonal_down", label: "MOVE" },
-    { from: "label_carton", to: "expedition_node", type: "inline", label: "TAG" },
-    { from: "expedition_node", to: "transport_delivery", type: "inline", label: "SHIP" }
-  ]
+  title: "Process Flow Diagram",
+  lanes: [],
+  flow: []
 };
+
+
 
 /* ═══════════════════════════════════════════════════════════
    LAYOUT CONSTANTS
@@ -119,20 +21,36 @@ const TITLE_W = 46;
 const LABEL_W = 132;
 const CONTENT_X = TITLE_W + LABEL_W;
 
-const NODE_W = 210;
-const NODE_H = 72;
+const NODE_W = 260;
+const NODE_H = 88;
 const NODE_GAP = 80;
 const LANE_H = 120;
 const START_R = 20;
 const DIAMOND_S = 35;
 
-/* Fixed horizontal columns (relative to 0,0 of SVG, NOT including TITLE_W) */
-/* Assign column index to each node (RELATIVE TO FLOW START) */
-const COL_CX_FLOW = [
-  30 + NODE_W / 2,                             // col 0
-  30 + NODE_W + NODE_GAP + NODE_W / 2,         // col 1
-  30 + (NODE_W + NODE_GAP) * 2 + NODE_W / 2,  // col 2
-];
+/* Dynamic column position calculator */
+const getColCx = (colIndex) => {
+  return 30 + (NODE_W + NODE_GAP) * colIndex + NODE_W / 2;
+};
+
+/* Helper to wrap long labels into 2 lines */
+const wrapText = (text, maxLineChars = 22) => {
+  if (!text) return [""];
+  if (text.includes("\n")) return text.split("\n");
+  if (text.length <= maxLineChars) return [text];
+
+  const words = text.split(" ");
+  let line1 = "";
+  let i = 0;
+  while (i < words.length && (line1 + (line1 ? " " : "") + words[i]).length <= maxLineChars) {
+    line1 += (line1 ? " " : "") + words[i];
+    i++;
+  }
+  const line2 = words.slice(i).join(" ");
+  // If line2 is also very long, we might need a 3rd line, but user said "two lines"
+  return line2 ? [line1, line2] : [line1];
+};
+
 
 
 
@@ -164,19 +82,13 @@ function Defs() {
 function ProcessNode({ n, isOpen, toggleAgent, onDragStart }) {
   const [showTooltip, setShowTooltip] = useState(false);
 
-  const accent = COLORS[n.color] || COLORS.blue;
+  const agentInfo = n.agentInfo;
+  const accent = COLORS[n.color] || COLORS.pink; // Default to red
   const bg = accent + "10"; // 10% opacity
-  const lines = n.label.split("\n");
+  const iconColor = agentInfo ? COLORS.green : accent; // Icon is green if agentic
+  const lines = wrapText(n.label);
   const x = n.cx - NODE_W / 2;
   const y = n.cy - NODE_H / 2;
-
-  // Use dynamic agentInfo if available, otherwise fallback to defaults
-  const agentInfo = n.agentInfo || {
-    title: "Process Agent",
-    type: "Automation Bot",
-    tasks: ["Orchestrates related process steps", "Verifies data integrity"],
-    accentColor: "#10B981"
-  };
 
   return (
     <g
@@ -206,7 +118,7 @@ function ProcessNode({ n, isOpen, toggleAgent, onDragStart }) {
         fill="#fff" stroke="rgba(0,0,0,0.05)" strokeWidth={0.5} />
 
       {/* Database/Process Icon */}
-      <g transform={`translate(${x + 24}, ${n.cy - 10})`} fill="none" stroke={accent} strokeWidth={1.5}>
+      <g transform={`translate(${x + 24}, ${n.cy - 10})`} fill="none" stroke={iconColor} strokeWidth={1.5}>
         <ellipse cx="10" cy="5" rx="7" ry="3" />
         <path d="M 3 5 v 8 c 0 1.65 3.13 3 7 3 s 7 -1.35 7 -3 v -8" />
       </g>
@@ -222,72 +134,74 @@ function ProcessNode({ n, isOpen, toggleAgent, onDragStart }) {
         ))}
       </g>
 
-      {/* Interactive Badge Area */}
-      <foreignObject
-        x={x + NODE_W - 18}
-        y={y - 18}
-        width={300}
-        height={350}
-        style={{ overflow: "visible", pointerEvents: "none" }}
-      >
-        <div style={{ position: "relative", pointerEvents: "all" }}>
-          {/* Badge Icon */}
-          <div
-            className={`w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-xl border-2 border-emerald-500 transition-all duration-500 cursor-pointer hover:scale-110 active:scale-95 ${isOpen ? "rotate-90 bg-emerald-50" : ""}`}
-            onMouseEnter={() => setShowTooltip(true)}
-            onMouseLeave={() => setShowTooltip(false)}
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleAgent(); // Lifted callback
-            }}
-          >
-            <GitBranch size={16} className="text-emerald-600 stroke-[2.5]" />
-          </div>
-
-          {/* Rich Agent Card Tooltip */}
-          <div
-            className={`absolute bottom-[120%] right-0 mb-4 w-72 bg-white rounded-2xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.35)] border border-slate-200 overflow-hidden transition-all duration-500 z-[110] origin-bottom-right ${showTooltip ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-90 translate-y-4"}`}
-            style={{ pointerEvents: showTooltip ? "auto" : "none" }}
-          >
-            {/* Card Header */}
+      {/* Interactive Badge Area - Only if Agentic Info exists */}
+      {agentInfo && (
+        <foreignObject
+          x={x + NODE_W - 18}
+          y={y - 18}
+          width={300}
+          height={350}
+          style={{ overflow: "visible", pointerEvents: "none" }}
+        >
+          <div style={{ position: "relative", pointerEvents: "all" }}>
+            {/* Badge Icon */}
             <div
-              className="text-white p-4 flex items-center gap-3"
-              style={{
-                background: `linear-gradient(135deg, ${agentInfo.accentColor}, ${agentInfo.accentColor}dd)`
+              className={`w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-xl border-2 border-emerald-500 transition-all duration-500 cursor-pointer hover:scale-110 active:scale-95 ${isOpen ? "rotate-90 bg-emerald-50" : ""}`}
+              onMouseEnter={() => setShowTooltip(true)}
+              onMouseLeave={() => setShowTooltip(false)}
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleAgent(); // Lifted callback
               }}
             >
-              <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md">
-                <Bot size={20} className="stroke-[2.5]" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] font-black uppercase tracking-widest opacity-80">{agentInfo.type}</span>
-                <span className="font-extrabold text-sm tracking-tight">{agentInfo.title}</span>
-              </div>
+              <GitBranch size={16} className="text-emerald-600 stroke-[2.5]" />
             </div>
 
-            {/* Card Content */}
-            <div className="p-4 bg-slate-50/50 backdrop-blur-sm">
-              <div className="flex items-center gap-2 mb-3">
-                <Layers size={14} className="text-slate-400" />
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Key Tasks</span>
+            {/* Rich Agent Card Tooltip */}
+            <div
+              className={`absolute bottom-[120%] right-0 mb-4 w-72 bg-white rounded-2xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.35)] border border-slate-200 overflow-hidden transition-all duration-500 z-[110] origin-bottom-right ${showTooltip ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-90 translate-y-4"}`}
+              style={{ pointerEvents: showTooltip ? "auto" : "none" }}
+            >
+              {/* Card Header - Now Blue as requested */}
+              <div
+                className="text-white p-4 flex items-center gap-3"
+                style={{
+                  background: `linear-gradient(135deg, ${COLORS.blue}, #2563eb)`
+                }}
+              >
+                <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md">
+                  <Bot size={20} className="stroke-[2.5]" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black uppercase tracking-widest opacity-80">{agentInfo.type}</span>
+                  <span className="font-extrabold text-sm tracking-tight">{agentInfo.title}</span>
+                </div>
               </div>
-              <ul className="space-y-2.5">
-                {agentInfo.tasks.map((task, i) => (
-                  <li key={i} className="flex items-start gap-3 group/item">
-                    <CheckCircle size={14} className="text-emerald-500 mt-0.5" />
-                    <span className="text-[11px] font-semibold text-slate-600 leading-relaxed group-hover/item:text-slate-900 transition-colors">
-                      {task}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
 
-            {/* Tooltip Arrow */}
-            <div className="absolute top-full right-4 -mt-1 border-[10px] border-transparent border-t-white" />
+              {/* Card Content */}
+              <div className="p-4 bg-slate-50/50 backdrop-blur-sm">
+                <div className="flex items-center gap-2 mb-3">
+                  <Layers size={14} className="text-slate-400" />
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Key Tasks</span>
+                </div>
+                <ul className="space-y-2.5">
+                  {(agentInfo.tasks || []).map((task, i) => (
+                    <li key={i} className="flex items-start gap-3 group/item">
+                      <CheckCircle size={14} className="text-emerald-500 mt-0.5" />
+                      <span className="text-[11px] font-semibold text-slate-600 leading-relaxed group-hover/item:text-slate-900 transition-colors">
+                        {task}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Tooltip Arrow */}
+              <div className="absolute top-full right-4 -mt-1 border-[10px] border-transparent border-t-white" />
+            </div>
           </div>
-        </div>
-      </foreignObject>
+        </foreignObject>
+      )}
     </g>
   );
 }
@@ -325,7 +239,7 @@ function DiamondNode({ n, onDragStart }) {
         fill="#1F2937" fontSize={11} fontWeight={800} fontFamily="Inter, Segoe UI, sans-serif"
         pointerEvents="none"
       >
-        APPROVE?
+        {n.label}
       </text>
     </g>
   );
@@ -453,7 +367,7 @@ function renderArrows(flow, nm, svgW) {
       return [x1, y1, x1 + dx * ratio, y1 + dy * ratio];
     };
 
-    const edgeLabel = conn.label || "NEXT";
+    const edgeLabel = conn.label || "";
 
     switch (conn.type) {
       /* horizontal within lane */
@@ -524,24 +438,61 @@ function renderArrows(flow, nm, svgW) {
    so cx is relative to the start of the SVG.
 ═══════════════════════════════════════════════════════════ */
 function buildNodeMap(data) {
+  if (!data || !data.lanes) return {};
   const nm = {};
   data.lanes.forEach((lane, li) => {
     const cy = li * LANE_H + LANE_H / 2;
     lane.nodes.forEach(node => {
       const col = node.column ?? 1;
-      nm[node.id] = { ...node, cx: COL_CX_FLOW[col], cy, laneIndex: li };
+      nm[node.id] = { ...node, cx: getColCx(col), cy, laneIndex: li };
     });
   });
   return nm;
 }
 
+
 /* ═══════════════════════════════════════════════════════════
    MAIN COMPONENT
 ═══════════════════════════════════════════════════════════ */
-export default function SwimlaneDiagram({ data = sampleDiagramData }) {
-  const [nodes, setNodes] = useState(() => buildNodeMap(data));
+export default function SwimlaneDiagram({ data: propData, processId }) {
+  const [diagramData, setDiagramData] = useState(propData || sampleDiagramData);
+  const [nodes, setNodes] = useState(() => buildNodeMap(diagramData));
+  const [loading, setLoading] = useState(false);
+  const lastFetchedId = useRef(null);
   const [viewport, setViewport] = useState({ x: 0, y: 0, zoom: 1 });
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Sync internal data when propData changes
+  useEffect(() => {
+    if (propData) {
+      setDiagramData(propData);
+    }
+  }, [propData]);
+
+  // Fetch data if processId is provided
+  useEffect(() => {
+    if (!processId || lastFetchedId.current === processId) return;
+    setLoading(true);
+    lastFetchedId.current = processId;
+    getProcessFlow(processId)
+      .then(res => {
+        setDiagramData(res);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("SwimlaneDiagram Error:", err);
+        setLoading(false);
+        lastFetchedId.current = null; // Allow retry
+      });
+  }, [processId]);
+
+  // Sync nodes when diagramData changes
+  useEffect(() => {
+    setNodes(buildNodeMap(diagramData));
+  }, [diagramData]);
+
+
+
 
   const [isPanning, setIsPanning] = useState(false);
   const [draggingNodeId, setDraggingNodeId] = useState(null);
@@ -553,12 +504,13 @@ export default function SwimlaneDiagram({ data = sampleDiagramData }) {
   const containerRef = useRef(null);
 
   const allNodes = Object.values(nodes);
-  const laneCount = data.lanes.length;
+  const laneCount = diagramData.lanes?.length || 1;
   const svgH = laneCount * LANE_H;
 
   // Calculate width of the flow content (SVG)
-  const rightmost = Math.max(...allNodes.map(n => n.cx + NODE_W / 2));
+  const rightmost = allNodes.length > 0 ? Math.max(...allNodes.map(n => n.cx + NODE_W / 2)) : 500;
   const svgW = rightmost + 300;
+
 
   const BORDER = "#000000";
   const WHITE = "#ffffff";
@@ -583,9 +535,10 @@ export default function SwimlaneDiagram({ data = sampleDiagramData }) {
 
   const handleReset = () => {
     setViewport({ x: 0, y: 0, zoom: 1 });
-    setNodes(buildNodeMap(data));
+    setNodes(buildNodeMap(diagramData));
     setAgentOffsets({});
   };
+
 
   const onMouseDown = (e) => {
     if (e.target.closest('button')) return;
@@ -663,6 +616,17 @@ export default function SwimlaneDiagram({ data = sampleDiagramData }) {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
+  if (loading) {
+    return (
+      <div className={`w-full border border-slate-200 rounded-3xl flex items-center justify-center bg-slate-50 transition-all duration-300 ${isFullscreen ? 'h-screen' : 'h-[600px]'}`}>
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+          <p className="text-sm font-medium text-slate-500 tracking-tight">Loading automation workflow...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full">
       {/* ── Outer card ── */}
@@ -735,8 +699,9 @@ export default function SwimlaneDiagram({ data = sampleDiagramData }) {
           zIndex: 10,
           position: "relative"
         }}>
-          {data.title}
+          {diagramData.title}
         </div>
+
 
         {/* ── Main content area (Labels + Flow) ── */}
         <div style={{
@@ -759,17 +724,22 @@ export default function SwimlaneDiagram({ data = sampleDiagramData }) {
               transition: (isPanning || draggingNodeId || draggingAgentId) ? "none" : "transform 0.1s ease-out"
             }}
           >
-            {/* Lane Horizontal Background Lines */}
-            <div style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: -10000, // Extend for panning
-              bottom: -10000,
-              backgroundImage: `linear-gradient(to bottom, ${BORDER} 1px, transparent 1px)`,
-              backgroundSize: `100% ${LANE_H}px`,
-              pointerEvents: "none",
-            }} />
+            {/* Dynamic Lane Horizontal Lines */}
+            {Array.from({ length: laneCount + 1 }).map((_, i) => (
+              <div
+                key={i}
+                style={{
+                  position: "absolute",
+                  top: i * LANE_H,
+                  left: 0,
+                  right: -10000,
+                  height: 1,
+                  backgroundColor: BORDER,
+                  pointerEvents: "none",
+                  opacity: 1
+                }}
+              />
+            ))}
 
             <div style={{ display: "flex" }}>
               {/* ── Lane Labels Column ── */}
@@ -779,7 +749,7 @@ export default function SwimlaneDiagram({ data = sampleDiagramData }) {
                 position: "relative",
                 background: "transparent",
               }}>
-                {data.lanes.map((lane) => {
+                {diagramData.lanes?.map((lane) => {
                   const lines = lane.label.split("\n");
                   return (
                     <div key={lane.id} style={{
@@ -805,47 +775,40 @@ export default function SwimlaneDiagram({ data = sampleDiagramData }) {
                 })}
               </div>
 
-              {/* ── SVG Flow ── */}
-              <div style={{
-                flex: "0 0 auto",
-                width: svgW,
-                height: svgH,
-                position: "relative"
-              }}>
-                <svg
-                  width={svgW}
-                  height={svgH}
-                  viewBox={`0 0 ${svgW} ${svgH}`}
-                  style={{ display: "block", background: "transparent" }}
-                >
-                  <Defs />
-                  {renderArrows(data.flow, nodes, svgW)}
-                  {/* ── Nodes (on top) ── */}
-                  {allNodes.map(n => {
-                    if (n.type === "start") return <StartNode key={n.id} n={n} onDragStart={onMouseDown} />;
-                    if (n.type === "decision") return <DiamondNode key={n.id} n={n} onDragStart={onMouseDown} />;
-                    return (
-                      <ProcessNode
-                        key={n.id}
-                        n={n}
-                        isOpen={openAgentIds.has(n.id)}
-                        toggleAgent={() => toggleAgent(n.id)}
-                        onDragStart={onMouseDown}
-                      />
-                    );
-                  })}
-
-                  {/* ── Agents (expanded) ── */}
-                  {allNodes.filter(n => openAgentIds.has(n.id)).map(n => (
-                    <AgentNode
-                      key={`agent-${n.id}`}
-                      parentNode={n}
-                      offset={agentOffsets[n.id]}
+              {/* ── SVG Flow Area ── */}
+              <svg width={svgW} height={svgH} style={{ background: "transparent", overflow: "visible" }}>
+                <Defs />
+                {renderArrows(diagramData.flow || [], nodes, svgW)}
+                {/* ── Nodes (on top) ── */}
+                {allNodes.map(n => {
+                  const isOpen = openAgentIds.has(n.id);
+                  if (n.type === "start") return <StartNode key={n.id} n={n} onDragStart={onMouseDown} />;
+                  if (n.type === "decision") return <DiamondNode key={n.id} n={n} onDragStart={onMouseDown} />;
+                  return (
+                    <ProcessNode
+                      key={n.id}
+                      n={n}
+                      isOpen={isOpen}
+                      toggleAgent={() => toggleAgent(n.id)}
                       onDragStart={onMouseDown}
                     />
-                  ))}
-                </svg>
-              </div>
+                  );
+                })}
+
+                {/* ── Agent Overlays ── */}
+                {Array.from(openAgentIds).map(id => {
+                  const n = nodes[id];
+                  if (!n) return null;
+                  return (
+                    <AgentNode
+                      key={`agent-${id}`}
+                      parentNode={n}
+                      offset={agentOffsets[id]}
+                      onDragStart={(e) => onMouseDown(e)}
+                    />
+                  );
+                })}
+              </svg>
             </div>
           </div>
         </div>
@@ -853,6 +816,7 @@ export default function SwimlaneDiagram({ data = sampleDiagramData }) {
     </div>
   );
 }
+
 
 
 

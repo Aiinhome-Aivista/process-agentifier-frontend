@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Cpu, CheckCircle2, ChevronDown, Workflow, Play } from 'lucide-react'
+import { Cpu, CheckCircle2, ChevronDown, Workflow, Play, RefreshCw } from 'lucide-react'
 import StepCard from '../components/analysis/StepCard'
 import SuggestionCard from '../components/automation/SuggestionCard'
 import AgenticWorkflow from '../components/automation/AgenticWorkflow'
 import AgenticDeploymentFlow from '../components/automation/AgenticDeploymentFlow'
 import SwimlaneDiagram from '../components/automation/SwimlaneDiagram'
+import { getProcessFlow } from '../services/api'
+import SapValidationWorkflow from '../components/automation/AgenticArchitecture'
+
 
 function AnimatedScore({ target }) {
   const [display, setDisplay] = useState(0)
@@ -149,12 +152,12 @@ export default function SuggestionDetailsPage() {
           <SuggestionCard suggestion={suggestion} index={0} hideChip />
         </div>
         {/* Agentic Workflow Section */}
-        <div
+        {/* <div
           className="opacity-0 animate-slide-up"
           style={{ animationDelay: '800ms', animationFillMode: 'both' }}
         >
           <AgenticWorkflowCard suggestionId={id} />
-        </div>
+        </div> */}
 
         {/* Architecture Card (Hardcoded) */}
         {/* <div
@@ -165,19 +168,28 @@ export default function SuggestionDetailsPage() {
         </div> */}
 
         {/* Deployment Section (API-driven) */}
-        <div
+        {/* <div
           className="opacity-0 animate-slide-up"
           style={{ animationDelay: '1000ms', animationFillMode: 'both' }}
         >
           <AgentDeploymentCard suggestionId={id} />
-        </div>
+        </div> */}
 
         <div
           className="opacity-0 animate-slide-up"
           style={{ animationDelay: '1200ms', animationFillMode: 'both' }}
         >
-          <SwimlaneDiagramCard />
+          <SwimlaneDiagramCard processId={process?.id} />
         </div>
+
+        <div
+          className="opacity-0 animate-slide-up"
+          style={{ animationDelay: '1400ms', animationFillMode: 'both' }}
+        >
+          <AgenticArchitectureCard suggestionId={id} />
+        </div>
+
+
       </div>
     </div>
   )
@@ -210,8 +222,8 @@ function AgentDeploymentCard({ suggestionId }) {
           <Cpu size={20} className="text-brand-500" />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-white/90 uppercase tracking-tight">Agent Cluster Architecture</h2>
-          <p className="text-[10px] text-white/40 uppercase tracking-widest font-semibold">Operating Model: Workflow Automation</p>
+          <h2 className="text-xl font-bold text-white/90 uppercase tracking-tight">Agent  Deployment</h2>
+          <p className="text-[10px] text-white/40 uppercase tracking-widest font-semibold">Operating Model: Infrastructure Layer</p>
         </div>
       </div>
       <div className="rounded-2xl overflow-hidden border border-white/5 shadow-2xl bg-black/40">
@@ -221,9 +233,30 @@ function AgentDeploymentCard({ suggestionId }) {
       <div className="flex justify-end mt-4 ">
         <button className="btn-primary shadow-xl shadow-brand-500/20 text-[10px] uppercase group">
           <Play size={14} className="fill-current group-hover:scale-110 transition-transform" />
-          Run the Agent
+          Run Deployment
         </button>
       </div>
+    </div>
+  )
+}
+
+function AgenticArchitectureCard({ suggestionId }) {
+  return (
+    <div className="card p-8 border-brand-500/20 bg-gradient-to-b from-white/5 to-transparent">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center">
+          <Cpu size={20} className="text-brand-500" />
+        </div>
+        <div>
+          <h2 className="text-xl font-bold text-white/90 uppercase tracking-tight">Agent  Architecture</h2>
+          <p className="text-[10px] text-white/40 uppercase tracking-widest font-semibold">Operating Model: Workflow Automation</p>
+        </div>
+      </div>
+      <div className="rounded-2xl overflow-hidden border border-white/5 shadow-2xl bg-black/40">
+        <SapValidationWorkflow suggestionId={suggestionId} />
+      </div>
+
+     
     </div>
   )
 }
@@ -341,21 +374,28 @@ function AgentDeploymentCard({ suggestionId }) {
 
 
 
-function SwimlaneDiagramCard() {
+function SwimlaneDiagramCard({ processId }) {
   return (
     <div className="card p-8 border-brand-500/20 bg-gradient-to-b from-white/5 to-transparent">
       <div className="flex items-center gap-3 mb-8">
         <div className="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center">
           <Workflow size={20} className="text-brand-500" />
         </div>
-        <div>
-          <h2 className="text-xl font-bold text-white/90 uppercase tracking-tight">Process Flow Diagram</h2>
-          <p className="text-[10px] text-white/40 uppercase tracking-widest font-semibold">Operating Model: Visual Process Flow</p>
+         <div>
+          <h2 className="text-xl font-bold text-white/90 uppercase tracking-tight">Agentic Process Workflow</h2>
+          <p className="text-[10px] text-white/40 uppercase tracking-widest font-semibold">Operating Model: Agentic Operations</p>
         </div>
       </div>
       <div className="rounded-2xl overflow-hidden border border-white/5 shadow-2xl bg-black/40">
-        <SwimlaneDiagram />
+        {!processId ? (
+          <div className="min-h-[400px] flex items-center justify-center">
+            <p className="text-white/30 text-sm animate-pulse">Initializing Diagram...</p>
+          </div>
+        ) : (
+          <SwimlaneDiagram processId={processId} />
+        )}
       </div>
     </div>
-  )
+  );
 }
+

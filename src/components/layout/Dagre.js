@@ -1,40 +1,55 @@
 import dagre from 'dagre';
+import { Position } from 'reactflow';
 
 export const getLayoutedElements = (nodes, edges, direction = 'TB') => {
-  const isHorizontal = direction === 'LR';
+  const isHorizontal = direction === 'LR' || direction === 'SWIMLANE';
+  const isSwimlane = direction === 'SWIMLANE';
+  
   const dagreGraph = new dagre.graphlib.Graph({ compound: true });
   dagreGraph.setDefaultEdgeLabel(() => ({}));
 
   dagreGraph.setGraph({
-    rankdir: direction,
-    ranksep: 200, // Increased for clarity
-    nodesep: 150, // Increased to prevent clustering
-    marginx: 80,
-    marginy: 80
+    rankdir: isSwimlane ? 'LR' : direction, // Internal flow is LR for swimlanes
+    ranksep: 180,
+    nodesep: 120,
+    marginx: 100,
+    marginy: 100
   });
 
-  // 1. Initial sizing pass
+  // 1. Sizing
   const nodeDimensions = {
-    stepNode: { width: 500, height: 220 },
-    groupNode: { width: 900, height: 700 }, // Scaled group fallback
+    stepNode: { width: 300, height: 120 },
+    processNode: { width: 300, height: 120 },
+    decisionNode: { width: 140, height: 140 },
+    agentNode: { width: 340, height: 220 },
+    agentGroupNode: { width: 1200, height: 400 },
   };
 
-  // Add all nodes to graph
   nodes.forEach((node) => {
-    const dim = nodeDimensions[node.type] || { width: 250, height: 100 };
+    const dim = nodeDimensions[node.type] || { width: 280, height: 100 };
     dagreGraph.setNode(node.id, { width: dim.width, height: dim.height });
     if (node.parentNode) {
       dagreGraph.setParent(node.id, node.parentNode);
     }
   });
 
-  // Add all edges
   edges.forEach((edge) => {
     dagreGraph.setEdge(edge.source, edge.target);
   });
 
-  // 2. Perform Layout
   dagre.layout(dagreGraph);
+
+  // --- Swimlane Stacking Logic ---
+  let laneYOffsets = new Map();
+  if (isSwimlane) {
+    const parentNodes = nodes.filter(n => !n.parentNode && (n.type === 'agentGroupNode' || dagreGraph.children(n.id).length > 0));
+    let currentY = 100;
+    parentNodes.forEach((parent) => {
+      laneYOffsets.set(parent.id, currentY);
+      const parentDagre = dagreGraph.node(parent.id);
+      currentY += parentDagre.height + 150; // Space between lanes
+    });
+  }
 
   // 3. Map back to React Flow
   const layoutedNodes = nodes.map((node) => {
@@ -42,28 +57,35 @@ export const getLayoutedElements = (nodes, edges, direction = 'TB') => {
     const parentId = node.parentNode;
     const parentData = parentId ? dagreGraph.node(parentId) : null;
 
-    // Calculate position
-    // React Flow child positions are relative to parent top-left
-    const x = nodeData.x - nodeData.width / 2;
-    const y = nodeData.y - nodeData.height / 2;
+    let x = nodeData.x - nodeData.width / 2;
+    let y = nodeData.y - nodeData.height / 2;
+
+    let relativeY = 0;
+    if (isSwimlane && parentId && laneYOffsets.has(parentId)) {
+      // Keep Dagre's X, but use our stacked Y
+      const originalParentY = parentData.y - parentData.height / 2;
+      relativeY = y - originalParentY;
+      y = laneYOffsets.get(parentId) + relativeY + 60; // Reduced top offset for sidebar layout
+    } else if (isSwimlane && !parentId && laneYOffsets.has(node.id)) {
+      y = laneYOffsets.get(node.id);
+    }
 
     const res = {
       ...node,
       position: {
-        x: parentData ? x - (parentData.x - parentData.width / 2) + 60 : x, // Offset into group padding
-        y: parentData ? y - (parentData.y - parentData.height / 2) + 100 : y, // Offset below header
+        // Offset into group padding - 240 for Wide Sidebar, 60 for consistent TOP margin
+        x: parentData ? x - (parentData.x - parentData.width / 2) + (isSwimlane ? 240 : 120) : x,
+        y: parentData ? (isSwimlane ? relativeY + 60 : y - (parentData.y - parentData.height / 2) + 120) : y,
       },
-      targetPosition: isHorizontal ? 'left' : 'top',
-      sourcePosition: isHorizontal ? 'right' : 'bottom',
+      targetPosition: isHorizontal ? Position.Left : Position.Top,
+      sourcePosition: isHorizontal ? Position.Right : Position.Bottom,
     };
 
-    // If this is a group node, ensure it has the dimensions Dagre calculated
     if (dagreGraph.children(node.id).length > 0) {
-      // Add extra padding for the header (64px) and internal space
       res.style = {
         ...node.style,
-        width: nodeData.width + 120, // 60px padding on each side
-        height: nodeData.height + 180, // 100px top (header) + 80px bottom
+        width: isSwimlane ? 2400 : nodeData.width + 250, // More width for sidebar
+        height: nodeData.height + 160, // Adjusted for less top padding
       };
     }
 

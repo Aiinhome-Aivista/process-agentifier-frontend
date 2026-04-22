@@ -259,7 +259,8 @@ function transformFlowData(apiData) {
   });
 
   // Apply Dagre Layout - Top-to-Bottom
-  const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(mappedNodes, mappedEdges, 'TB');
+  // Apply Dagre Layout - Swimlane (Lanes stacked vertically, flow LR)
+  const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(mappedNodes, mappedEdges, 'SWIMLANE');
 
   return {
     nodes: layoutedNodes,
@@ -282,13 +283,13 @@ function AgentNode({ data, targetPosition, sourcePosition }) {
         transition: 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
       }}
     >
-      <Handle type="target" position={targetPosition} className="w-3 h-3 !bg-slate-300 border-2 border-white" />
+      <Handle type="target" position={Position.Left} className="w-3 h-3 !bg-slate-300 border-2 border-white" />
       <Handle
         type="target"
-        position={targetPosition}
+        position={Position.Left}
         id="agentic-in"
         style={{
-          [targetPosition === Position.Left || targetPosition === Position.Right ? 'top' : 'left']: '70%',
+          top: '70%',
           opacity: 0
         }}
       />
@@ -320,15 +321,15 @@ function AgentNode({ data, targetPosition, sourcePosition }) {
           </ul>
         </div>
       )}
-      <Handle type="source" id="bottom" position={sourcePosition} className="w-3 h-3 !bg-slate-300 border-2 border-white" />
+      <Handle type="source" id="bottom" position={Position.Right} className="w-3 h-3 !bg-slate-300 border-2 border-white" />
       <Handle type="source" id="right" position={Position.Right} className="w-3 h-3 !bg-slate-300 border-2 border-white opacity-0" />
       <Handle type="source" id="left" position={Position.Left} className="w-3 h-3 !bg-slate-300 border-2 border-white opacity-0" />
       <Handle
         type="source"
-        position={sourcePosition}
+        position={Position.Right}
         id="agentic-out"
         style={{
-          [sourcePosition === Position.Left || sourcePosition === Position.Right ? 'top' : 'left']: '70%',
+          top: '70%',
           opacity: 0
         }}
       />
@@ -361,7 +362,16 @@ function ProcessNode({ data, targetPosition, sourcePosition }) {
         className="absolute top-0 left-0 w-1.5 h-full"
         style={{ backgroundColor: accentColor }}
       />
-      <Handle type="target" position={targetPosition} className="w-3 h-3 !bg-slate-300 border-2 border-white" />
+       <Handle type="target" position={Position.Left} className="w-3 h-3 !bg-slate-300 border-2 border-white" />
+      <Handle
+        type="target"
+        position={Position.Left}
+        id="agentic-in"
+        style={{
+          top: '70%',
+          opacity: 0
+        }}
+      />
 
       {hasAgenticPotential && (
         <div
@@ -433,9 +443,18 @@ function ProcessNode({ data, targetPosition, sourcePosition }) {
           {data.label}
         </span>
       </div>
-      <Handle type="source" id="bottom" position={sourcePosition} className="w-3 h-3 !bg-slate-300 border-2 border-white" />
+      <Handle type="source" id="bottom" position={Position.Right} className="w-3 h-3 !bg-slate-300 border-2 border-white" />
       <Handle type="source" id="right" position={Position.Right} className="w-3 h-3 !bg-slate-300 border-2 border-white opacity-0" />
       <Handle type="source" id="left" position={Position.Left} className="w-3 h-3 !bg-slate-300 border-2 border-white opacity-0" />
+      <Handle
+        type="source"
+        position={Position.Right}
+        id="agentic-out"
+        style={{
+          top: '70%',
+          opacity: 0
+        }}
+      />
     </div>
   );
 }
@@ -446,13 +465,13 @@ function DecisionNode({ data, targetPosition }) {
       <div className={`absolute inset-2 bg-gradient-to-br from-amber-50 to-amber-100 border-2 border-amber-500 shadow-xl transform rotate-45 rounded-2xl group-hover:scale-105 transition-transform duration-500 ${data.isHighlighted ? 'ring-4 ring-amber-500 ring-offset-4 shadow-amber-500/40' : ''}`}></div>
       <div className={`absolute inset-0 border border-amber-500/20 transform rotate-45 rounded-2xl scale-[1.12] ${data.isHighlighted ? 'border-amber-500 opacity-100 animate-pulse' : ''}`}></div>
 
-      <Handle type="target" position={targetPosition} className="w-3 h-3 z-20 !bg-amber-500 border-2 border-white" />
+      <Handle type="target" position={Position.Left} className="w-3 h-3 z-20 !bg-amber-500 border-2 border-white" />
       <Handle
         type="target"
-        position={targetPosition}
+        position={Position.Left}
         id="agentic-in"
         style={{
-          [targetPosition === Position.Left || targetPosition === Position.Right ? 'top' : 'left']: '70%',
+          top: '70%',
           opacity: 0
         }}
       />
@@ -464,9 +483,18 @@ function DecisionNode({ data, targetPosition }) {
         </div>
       </div>
 
-      <Handle type="source" position={Position.Bottom} id="bottom" className="w-3 h-3 z-20 !bg-amber-500 border-2 border-white shadow-sm" />
+      <Handle type="source" position={Position.Right} id="bottom" className="w-3 h-3 z-20 !bg-amber-500 border-2 border-white shadow-sm" />
       <Handle type="source" position={Position.Right} id="right" className="w-3 h-3 z-20 !bg-amber-500 border-2 border-white shadow-sm" />
       <Handle type="source" position={Position.Left} id="left" className="w-3 h-3 z-20 !bg-amber-500 border-2 border-white shadow-sm" />
+      <Handle
+        type="source"
+        position={Position.Right}
+        id="agentic-out"
+        style={{
+          top: '70%',
+          opacity: 0
+        }}
+      />
     </div>
   );
 }
@@ -475,7 +503,7 @@ function AgentGroupNode({ data }) {
   const accentColor = data.accentColor || '#6366f1';
   return (
     <div
-      className={`w-full h-full border-2 rounded-[2rem] relative shadow-inner overflow-hidden transition-all duration-700 ${data.isHighlighted ? 'ring-8 ring-brand-500/20 border-brand-500' : ''
+      className={`w-full h-full border-2 rounded-[2.5rem] relative shadow-inner overflow-hidden transition-all duration-700 ${data.isHighlighted ? 'ring-8 ring-brand-500/20 border-brand-500' : ''
         } ${data.isDimmed ? 'opacity-20 backdrop-grayscale' : 'opacity-100'}`}
       style={{
         backgroundColor: data.isHighlighted ? `${accentColor}15` : `${accentColor}05`,
@@ -483,15 +511,22 @@ function AgentGroupNode({ data }) {
       }}
     >
       <div
-        className="absolute top-0 left-0 right-0 text-white px-6 py-4 text-base font-black flex items-center gap-3 shadow-lg z-10"
+        className="absolute top-0 left-0 bottom-0 text-white w-40 flex flex-col items-center justify-center gap-8 shadow-2xl z-10 border-r-2 border-slate-700/50 p-4"
         style={{
-          background: 'linear-gradient(90deg, #475569, #334155)'
+          background: 'linear-gradient(180deg, #475569, #334155)'
         }}
       >
-        <div className="bg-white/20 p-1.5 rounded-lg">
-          {data.icon && <data.icon size={20} />}
+        <div className="bg-white/10 p-3 rounded-2xl backdrop-blur-md">
+          {data.icon && <data.icon size={32} />}
         </div>
-        <span className="uppercase tracking-[0.1em]">{data.label}</span>
+        <span 
+          className="uppercase tracking-[0.1em] font-black text-lg select-none text-center leading-tight" 
+          style={{ 
+            textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+          }}
+        >
+          {data.label}
+        </span>
       </div>
       <Handle type="target" position={Position.Top} id="agentic-in" style={{ left: '70%', opacity: 0 }} />
       <Handle type="source" position={Position.Bottom} id="agentic-out" style={{ left: '70%', opacity: 0 }} />
