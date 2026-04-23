@@ -34,7 +34,7 @@ import {
   Loader2,
   X,
 } from "lucide-react";
-import { getAutomationArchitecture } from "../../services/api";
+import { getAutomationArchitecture, runAutomationArchitecture } from "../../services/api";
 
 
 // Edge transport styling
@@ -344,7 +344,7 @@ function buildEdgePath(edge, positions, edgeIndex, totalSameDirection) {
 
 // ────────────────────────────────────────────────────────────────
 
-export default function SapValidationWorkflow({ suggestionId }) {
+export default function SapValidationWorkflow({ suggestionId, stepKey, analysisId, onComplete }) {
   const [workflow, setWorkflow] = useState(null);
   const [layers, setLayers] = useState([]);
   const [nodeMeta, setNodeMeta] = useState({});
@@ -362,6 +362,7 @@ export default function SapValidationWorkflow({ suggestionId }) {
   const [log, setLog] = useState([]);
   const [hoveredEdge, setHoveredEdge] = useState(null);
   const [hoveredNode, setHoveredNode] = useState(null);
+  const [apiResponse, setApiResponse] = useState(null);
   const cancelRef = useRef(false);
 
   const lastFetchedId = useRef(null);
@@ -436,6 +437,7 @@ export default function SapValidationWorkflow({ suggestionId }) {
     setCurrentStep(-1);
     setIsRunning(false);
     setLog([]);
+    setApiResponse(null);
   }, []);
 
   const runFlow = async () => {
@@ -496,8 +498,74 @@ export default function SapValidationWorkflow({ suggestionId }) {
     setCompletedEdges(new Set(completedE));
     lines.push(`◆ pipeline complete — ${runSequence.length} services validated`);
     setLog([...lines]);
+
+    // Actual API call
+    try {
+      if (stepKey) {
+        const sessionId = localStorage.getItem('session_id');
+        const payload = {
+          step_key: stepKey,
+          session_id: sessionId
+        };
+        const response = await runAutomationArchitecture(payload);
+        setApiResponse(response);
+
+        // Update localStorage to reflect 0% potential
+        const updateStorage = (key, sId, sKey) => {
+          const raw = localStorage.getItem(`${key}_${sId}`);
+          if (!raw) return;
+          try {
+            const parsed = JSON.parse(raw);
+            let updated = false;
+
+            // 1. Update in steps array
+            if (parsed.steps) {
+              const idx = parsed.steps.findIndex(s => s.id === sKey || s._key === sKey);
+              if (idx !== -1) {
+                parsed.steps[idx].automation_potential = 0;
+                updated = true;
+              }
+            }
+
+            // 2. Update in top_automation_targets
+            if (parsed.top_automation_targets) {
+              const idx = parsed.top_automation_targets.findIndex(t => t.id === sKey || t._key === sKey);
+              if (idx !== -1) {
+                parsed.top_automation_targets[idx].automation_potential = 0;
+                updated = true;
+              }
+            }
+
+            // 3. Update top-level if it's the suggestion itself
+            if (parsed.id === sKey || parsed._key === sKey || parsed.step_key === sKey) {
+              parsed.automation_potential = 0;
+              if (parsed.metrics) parsed.metrics.automation_potential = 0;
+              updated = true;
+            }
+
+            if (updated) {
+              localStorage.setItem(`${key}_${sId}`, JSON.stringify(parsed));
+            }
+          } catch (e) {
+            console.error(`Failed to update ${key} storage:`, e);
+          }
+        };
+
+        if (analysisId) updateStorage('analysis', analysisId, stepKey);
+        if (suggestionId) updateStorage('suggestion', suggestionId, stepKey);
+      }
+    } catch (apiErr) {
+      console.error("API Step Run Failed:", apiErr);
+      lines.push(`✖ Agent execution failed: ${apiErr.message}`);
+      setLog([...lines]);
+      setApiResponse({ status: 'error', message: apiErr.message });
+    }
+
     setIsRunning(false);
-    setTimeout(() => setShowCompleteModal(true), 500);
+    setTimeout(() => {
+      setShowCompleteModal(true);
+      if (onComplete) onComplete();
+    }, 500);
   };
 
 
@@ -801,9 +869,9 @@ export default function SapValidationWorkflow({ suggestionId }) {
 
                   : isDone
 
-                    ? `arrow-${edge.label.replace(/\s/g, "-")}`
+                    ? `arrow-${(edge.label || "sync API").replace(/\s/g, "-")}`
 
-                    : `arrow-${edge.label.replace(/\s/g, "-")}`;
+                    : `arrow-${(edge.label || "sync API").replace(/\s/g, "-")}`;
 
 
 
@@ -994,12 +1062,12 @@ export default function SapValidationWorkflow({ suggestionId }) {
                             : "shadow-md"
                           }`}
                         style={{
-                          backgroundColor: isActive ? "#f0fdf4" : `${accentColor}10`,
+                          backgroundColor: isActive ? "#f0fdf4" : "white",
                           borderColor: isActive
                             ? "#22c55e"
                             : isHovered
                               ? accentColor
-                              : `${accentColor}30`,
+                              : `${accentColor}40`,
                         }}
                       >
                         {/* Left accent bar */}
@@ -1185,16 +1253,16 @@ export default function SapValidationWorkflow({ suggestionId }) {
       {/* Completion Modal */}
       {showCompleteModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div 
+          <div
             className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
             onClick={() => setShowCompleteModal(false)}
           />
-          <div 
+          <div
             className="relative bg-white rounded-3xl shadow-2xl p-6 max-w-[300px] w-full border border-slate-100 overflow-hidden"
             style={{ animation: 'modalEnter 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)' }}
           >
             {/* Top Right Cross Button */}
-            <button 
+            <button
               onClick={() => setShowCompleteModal(false)}
               className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
             >
@@ -1202,20 +1270,22 @@ export default function SapValidationWorkflow({ suggestionId }) {
             </button>
 
             <div className="flex flex-col items-center text-center">
-              <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mb-5 relative">
-                <div className="absolute inset-0 bg-emerald-100 rounded-full animate-ping opacity-25" />
-                <CheckCircle2 className="w-8 h-8 text-emerald-500 relative z-10" />
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-5 relative ${apiResponse?.status === 'error' ? 'bg-red-50' : 'bg-emerald-50'
+                }`}>
+                <div className={`absolute inset-0 rounded-full animate-ping opacity-25 ${apiResponse?.status === 'error' ? 'bg-red-100' : 'bg-emerald-100'
+                  }`} />
+                {apiResponse?.status === 'error' ? (
+                  <AlertCircle className="w-8 h-8 text-red-500 relative z-10" />
+                ) : (
+                  <CheckCircle2 className="w-8 h-8 text-emerald-500 relative z-10" />
+                )}
               </div>
-              
-              <h3 className="text-xl font-black text-slate-900 mb-2 tracking-tight">
-                Process Complete!
+
+              <h3 className="text-base font-bold text-slate-800 mb-6 leading-tight">
+                {apiResponse?.message || (apiResponse?.status === 'error' ? 'Operation Failed' : 'Process Complete')}
               </h3>
-              
-              <p className="text-slate-500 text-xs font-medium mb-6 leading-relaxed">
-                Execution successfully finished.
-              </p>
-              
-            
+
+
             </div>
           </div>
         </div>

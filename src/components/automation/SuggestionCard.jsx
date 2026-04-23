@@ -42,7 +42,7 @@ export default function SuggestionCard({ suggestion, index, hideChip }) {
         "Streamlines workflow handling with better compliance"
       ]
     }
-    sessionStorage.setItem(`suggestion_${id}`, JSON.stringify(details))
+    localStorage.setItem(`suggestion_${id}`, JSON.stringify(details))
     const url = `${import.meta.env.BASE_URL}suggestion/${id}`
     window.open(url, '_blank')
   }
@@ -171,7 +171,7 @@ function Metric({ icon, label, value, bold, valueClass, tooltip, onEyeClick }) {
         <div className="flex items-center gap-1.5 mb-1">
           <p className="text-[10px] uppercase font-semibold text-white/50 tracking-tight leading-none">{label}</p>
           {label === 'Accuracy' && (
-            <Eye size={13} className="text-brand-500 group-hover:text-brand-400 transition-colors relative left-15 top-0"  />
+            <Eye size={13} className="text-brand-500 group-hover:text-brand-400 transition-colors relative left-15 top-0" />
           )}
         </div>
         <p className={clsx(

@@ -12,29 +12,61 @@ export default function AnalysisPage() {
   const { id } = useParams()
   const location = useLocation()
   const navigate = useNavigate()
-  const [result, setResult] = useState(location.state?.result || null)
+  
+  const [result, setResult] = useState(() => {
+    // Priority 1: Check localStorage for updated/cached progress
+    if (id) {
+      const cached = localStorage.getItem(`analysis_${id}`);
+      if (cached) return JSON.parse(cached);
+    }
+    // Priority 2: Fallback to location state (fresh from analysis)
+    return location.state?.result || null;
+  });
+
   const [loading, setLoading] = useState(!result)
   const [error, setError] = useState('')
   const [activeTab, setActiveTab] = useState('overview')
 
   useEffect(() => {
-    if (!result && id) {
-      setLoading(true)
-      getProcess(id)
-        .then(data => {
-          setResult(data)
-          sessionStorage.setItem(`analysis_${id}`, JSON.stringify(data))
-        })
-        .catch(err => setError(err.message))
-        .finally(() => setLoading(false))
-    } else if (result && id) {
-      sessionStorage.setItem(`analysis_${id}`, JSON.stringify(result))
+    const loadFromStorage = () => {
+      const data = localStorage.getItem(`analysis_${id}`)
+      if (data) {
+        setResult(JSON.parse(data))
+        return true
+      }
+      return false
     }
 
-    // No manual cleanup needed for sessionStorage as it's tab-specific 
-    // and persists through page refreshes.
-    return () => {}
-  }, [id, result])
+    if (!result && id) {
+      const hasCached = loadFromStorage()
+      if (!hasCached) {
+        setLoading(true)
+        getProcess(id)
+          .then(data => {
+            setResult(data)
+            localStorage.setItem(`analysis_${id}`, JSON.stringify(data))
+          })
+          .catch(err => setError(err.message))
+          .finally(() => setLoading(false))
+      }
+    } else if (result && id) {
+      // Sync state back to storage to ensure persistence
+      localStorage.setItem(`analysis_${id}`, JSON.stringify(result))
+    }
+
+    const handleStorage = (e) => {
+      if (e.key === `analysis_${id}`) {
+        loadFromStorage();
+      }
+    };
+
+    window.addEventListener('automation-complete', loadFromStorage)
+    window.addEventListener('storage', handleStorage)
+    return () => {
+      window.removeEventListener('automation-complete', loadFromStorage)
+      window.removeEventListener('storage', handleStorage)
+    }
+  }, [id])
 
   if (loading) {
     return (

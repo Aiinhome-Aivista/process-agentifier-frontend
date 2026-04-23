@@ -40,23 +40,36 @@ export default function SuggestionDetailsPage() {
   const [processData, setProcessData] = useState(null)
 
   useEffect(() => {
-    const data = sessionStorage.getItem(`suggestion_${id}`)
-    if (data) {
-      const parsed = JSON.parse(data)
-      setSuggestion(parsed)
+    const loadData = () => {
+      const data = localStorage.getItem(`suggestion_${id}`)
+      if (data) {
+        const parsed = JSON.parse(data)
+        setSuggestion(parsed)
 
-      // Read the cached analysis data from sessionStorage
-      if (parsed.analysisId) {
-        const analysisData = sessionStorage.getItem(`analysis_${parsed.analysisId}`)
-        if (analysisData) {
-          setProcessData(JSON.parse(analysisData))
+        // Read the cached analysis data from localStorage
+        if (parsed.analysisId) {
+          const analysisData = localStorage.getItem(`analysis_${parsed.analysisId}`)
+          if (analysisData) {
+            setProcessData(JSON.parse(analysisData))
+          }
         }
       }
     }
 
-    // No manual cleanup needed for sessionStorage as it's tab-specific
-    return () => { }
-  }, [id])
+    loadData()
+    window.addEventListener('automation-complete', loadData)
+    const handleStorage = (e) => {
+      if (e.key === `suggestion_${id}` || (suggestion?.analysisId && e.key === `analysis_${suggestion.analysisId}`)) {
+        loadData();
+      }
+    };
+    window.addEventListener('storage', handleStorage)
+
+    return () => {
+      window.removeEventListener('automation-complete', loadData)
+      window.removeEventListener('storage', handleStorage)
+    }
+  }, [id, suggestion?.analysisId])
 
   if (!suggestion) {
     return (
@@ -186,7 +199,11 @@ export default function SuggestionDetailsPage() {
           className="opacity-0 animate-slide-up"
           style={{ animationDelay: '1400ms', animationFillMode: 'both' }}
         >
-          <AgenticArchitectureCard suggestionId={id} />
+          <AgenticArchitectureCard
+            suggestionId={id}
+            stepKey={suggestion.step_key}
+            analysisId={suggestion.analysisId || processData?.process?._key || processData?.process?.id}
+          />
         </div>
 
 
@@ -240,7 +257,7 @@ function AgentDeploymentCard({ suggestionId }) {
   )
 }
 
-function AgenticArchitectureCard({ suggestionId }) {
+function AgenticArchitectureCard({ suggestionId, stepKey, analysisId }) {
   return (
     <div className="card p-8 border-brand-500/20 bg-gradient-to-b from-white/5 to-transparent">
       <div className="flex items-center gap-3 mb-6">
@@ -253,10 +270,16 @@ function AgenticArchitectureCard({ suggestionId }) {
         </div>
       </div>
       <div className="rounded-2xl overflow-hidden border border-white/5 shadow-2xl bg-black/40">
-        <SapValidationWorkflow suggestionId={suggestionId} />
+        <SapValidationWorkflow
+          suggestionId={suggestionId}
+          stepKey={stepKey}
+          analysisId={analysisId}
+          onComplete={() => {
+            // Re-sync from sessionStorage or trigger data refresh
+            window.dispatchEvent(new Event('automation-complete'));
+          }}
+        />
       </div>
-
-     
     </div>
   )
 }
@@ -381,7 +404,7 @@ function SwimlaneDiagramCard({ processId }) {
         <div className="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center">
           <Workflow size={20} className="text-brand-500" />
         </div>
-         <div>
+        <div>
           <h2 className="text-xl font-bold text-white/90 uppercase tracking-tight">Agentic Process Workflow</h2>
           <p className="text-[10px] text-white/40 uppercase tracking-widest font-semibold">Operating Model: Agentic Operations</p>
         </div>

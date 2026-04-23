@@ -41,6 +41,12 @@ export default function HomePage() {
     setLoading(true)
     try {
       const result = await analyzeFiles(files, userText)
+      
+      // Store session_id in localStorage
+      if (result.session_id) {
+        localStorage.setItem('session_id', result.session_id)
+      }
+
       // Navigate to analysis page with result in state
       navigate(`/analysis/${result.process.id}`, { state: { result } })
     } catch (err) {
