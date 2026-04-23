@@ -83,7 +83,7 @@ function ProcessNode({ n, isOpen, toggleAgent, onDragStart }) {
   const [showTooltip, setShowTooltip] = useState(false);
 
   const agentInfo = n.agentInfo;
-  const accent = COLORS[n.color] || COLORS.pink; // Default to red
+  const accent = agentInfo ? (COLORS[n.color] || COLORS.pink) : COLORS.green; 
   const bg = accent + "10"; // 10% opacity
   const iconColor = agentInfo ? COLORS.green : accent; // Icon is green if agentic
   const lines = wrapText(n.label);
@@ -100,7 +100,10 @@ function ProcessNode({ n, isOpen, toggleAgent, onDragStart }) {
       <rect x={x + 2} y={y + 2} width={NODE_W} height={NODE_H} rx={14}
         fill="rgba(0,0,0,0.06)" />
 
-      {/* Main Card */}
+      {/* Main Card - White base to block underlying lines */}
+      <rect x={x} y={y} width={NODE_W} height={NODE_H} rx={14}
+        fill="#ffffff" />
+      {/* Tinted Overlay */}
       <rect x={x} y={y} width={NODE_W} height={NODE_H} rx={14}
         fill={bg} stroke={accent + "30"} strokeWidth={1} />
 
@@ -141,7 +144,7 @@ function ProcessNode({ n, isOpen, toggleAgent, onDragStart }) {
           y={y - 18}
           width={300}
           height={350}
-          style={{ overflow: "visible", pointerEvents: "none" }}
+          style={{ overflow: "visible", pointerEvents: "none", userSelect: "none" }}
         >
           <div style={{ position: "relative", pointerEvents: "all" }}>
             {/* Badge Icon */}
@@ -149,10 +152,6 @@ function ProcessNode({ n, isOpen, toggleAgent, onDragStart }) {
               className={`w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-xl border-2 border-emerald-500 transition-all duration-500 cursor-pointer hover:scale-110 active:scale-95 ${isOpen ? "rotate-90 bg-emerald-50" : ""}`}
               onMouseEnter={() => setShowTooltip(true)}
               onMouseLeave={() => setShowTooltip(false)}
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleAgent(); // Lifted callback
-              }}
             >
               <GitBranch size={16} className="text-emerald-600 stroke-[2.5]" />
             </div>
@@ -454,7 +453,7 @@ function buildNodeMap(data) {
 /* ═══════════════════════════════════════════════════════════
    MAIN COMPONENT
 ═══════════════════════════════════════════════════════════ */
-export default function SwimlaneDiagram({ data: propData, processId }) {
+export default function SwimlaneDiagram({ data: propData, suggestionId }) {
   const [diagramData, setDiagramData] = useState(propData || sampleDiagramData);
   const [nodes, setNodes] = useState(() => buildNodeMap(diagramData));
   const [loading, setLoading] = useState(false);
@@ -469,12 +468,12 @@ export default function SwimlaneDiagram({ data: propData, processId }) {
     }
   }, [propData]);
 
-  // Fetch data if processId is provided
+  // Fetch data if suggestionId is provided
   useEffect(() => {
-    if (!processId || lastFetchedId.current === processId) return;
+    if (!suggestionId || lastFetchedId.current === suggestionId) return;
     setLoading(true);
-    lastFetchedId.current = processId;
-    getProcessFlow(processId)
+    lastFetchedId.current = suggestionId;
+    getProcessFlow(suggestionId)
       .then(res => {
         setDiagramData(res);
         setLoading(false);
@@ -484,7 +483,7 @@ export default function SwimlaneDiagram({ data: propData, processId }) {
         setLoading(false);
         lastFetchedId.current = null; // Allow retry
       });
-  }, [processId]);
+  }, [suggestionId]);
 
   // Sync nodes when diagramData changes
   useEffect(() => {
@@ -643,7 +642,8 @@ export default function SwimlaneDiagram({ data: propData, processId }) {
           overflow: "hidden",
           position: "relative",
           cursor: (isPanning || draggingNodeId || draggingAgentId) ? "grabbing" : "grab",
-          transition: "height 0.3s ease"
+          transition: "height 0.3s ease",
+          userSelect: "none"
         }}
         onMouseDown={onMouseDown}
         onMouseMove={onMouseMove}

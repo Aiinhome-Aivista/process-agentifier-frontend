@@ -3,11 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { Cpu, CheckCircle2, ChevronDown, Workflow, Play, RefreshCw } from 'lucide-react'
 import StepCard from '../components/analysis/StepCard'
 import SuggestionCard from '../components/automation/SuggestionCard'
-import AgenticWorkflow from '../components/automation/AgenticWorkflow'
-import AgenticDeploymentFlow from '../components/automation/AgenticDeploymentFlow'
-import SwimlaneDiagram from '../components/automation/AgenticWorkflowDiagram'
+import AgenticWorkflow from '../components/automation/AgenticWorkflowOld'
+import AgenticDeploymentFlow from '../components/automation/AgenticArchitectureOld'
+import SwimlaneDiagram from '../components/automation/AgenticWorkflowDiagramNew'
 import { getProcessFlow } from '../services/api'
-import SapValidationWorkflow from '../components/automation/AgenticArchitecture'
+import SapValidationWorkflow from '../components/automation/AgenticArchitectureNew'
 
 
 function AnimatedScore({ target }) {
@@ -192,7 +192,7 @@ export default function SuggestionDetailsPage() {
           className="opacity-0 animate-slide-up"
           style={{ animationDelay: '1200ms', animationFillMode: 'both' }}
         >
-          <SwimlaneDiagramCard processId={process?.id} />
+          <SwimlaneDiagramCard suggestionId={id} />
         </div>
 
         <div
@@ -397,7 +397,7 @@ function AgenticArchitectureCard({ suggestionId, stepKey, analysisId }) {
 
 
 
-function SwimlaneDiagramCard({ processId }) {
+function SwimlaneDiagramCard({ suggestionId }) {
   return (
     <div className="card p-8 border-brand-500/20 bg-gradient-to-b from-white/5 to-transparent">
       <div className="flex items-center gap-3 mb-8">
@@ -410,12 +410,12 @@ function SwimlaneDiagramCard({ processId }) {
         </div>
       </div>
       <div className="rounded-2xl overflow-hidden border border-white/5 shadow-2xl bg-black/40">
-        {!processId ? (
+        {!suggestionId ? (
           <div className="min-h-[400px] flex items-center justify-center">
             <p className="text-white/30 text-sm animate-pulse">Initializing Diagram...</p>
           </div>
         ) : (
-          <SwimlaneDiagram processId={processId} />
+          <SwimlaneDiagram suggestionId={suggestionId} />
         )}
       </div>
     </div>
