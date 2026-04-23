@@ -586,7 +586,7 @@ export default function SapValidationWorkflow({ suggestionId, stepKey, analysisI
       <div className="w-full border border-slate-200 rounded-3xl flex items-center justify-center bg-slate-50 h-[820px]">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-8 h-8 text-[#10b981] animate-spin" />
-          <p className="text-sm font-medium text-slate-500">loading Architecture...</p>
+          <p className="text-sm font-medium text-slate-500">loading agent Architecture...</p>
         </div>
       </div>
     );
