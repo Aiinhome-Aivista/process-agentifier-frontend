@@ -1226,11 +1226,6 @@ export default function SapValidationWorkflow({ suggestionId, stepKey, analysisI
               </div>
 
             </div>
-
-
-
-
-
           </div>
 
         </div>

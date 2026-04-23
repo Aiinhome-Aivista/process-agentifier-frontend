@@ -5,7 +5,7 @@ import StepCard from '../components/analysis/StepCard'
 import SuggestionCard from '../components/automation/SuggestionCard'
 import AgenticWorkflow from '../components/automation/AgenticWorkflow'
 import AgenticDeploymentFlow from '../components/automation/AgenticDeploymentFlow'
-import SwimlaneDiagram from '../components/automation/SwimlaneDiagram'
+import SwimlaneDiagram from '../components/automation/AgenticWorkflowDiagram'
 import { getProcessFlow } from '../services/api'
 import SapValidationWorkflow from '../components/automation/AgenticArchitecture'
 

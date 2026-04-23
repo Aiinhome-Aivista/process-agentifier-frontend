@@ -20,9 +20,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
-    localStorage.removeItem('session_id');
-    localStorage.removeItem('analysis_id');
-    localStorage.removeItem('suggestion_id'); 
+    localStorage.clear();
   };
 
   const isAuthenticated = !!user;
