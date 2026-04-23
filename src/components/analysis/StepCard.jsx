@@ -25,12 +25,12 @@ const getPotentialColor = (value) => {
   return { bg: 'bg-brand-500/10', text: 'text-brand-500', border: 'border-brand-500/20', bar: 'bg-brand-500' };
 };
 
-function AutomationBar({ value, automation_reasoning }) {
+function AutomationBar({ value, automation_reasoning, isBlocked }) {
   const colors = getPotentialColor(value);
   const color = colors.bar;
   return (
     <div className="group/bar relative mt-3">
-      {automation_reasoning && (
+      {automation_reasoning && !isBlocked && (
         <div className="pointer-events-none absolute -top-10 left-1/2 z-20 -translate-x-1/2 w-full rounded-bl-lg rounded-t-lg bg-slate-100 px-2.5 py-1.5 text-[10px] font-medium leading-tight text-black opacity-0 shadow-xl transition-all duration-300 translate-y-1 group-hover/bar:opacity-100 group-hover/bar:translate-y-0">
           {automation_reasoning}
         </div>
@@ -59,6 +59,7 @@ export default function StepCard({ step, index, isLast, isSelected, onClick }) {
   const isAgenticOrHuman = ['higher agentic intervention', 'higher human intervention'].includes(step.step_type?.toLowerCase());
   const isFinanceActor = step.actor?.toLowerCase().includes('finance') || step.actor?.toLowerCase().includes('manager');
 
+  const isBlocked = step.automation_potential === 0;
   const typeColor = (isAgenticOrHuman || isFinanceActor)
     ? `${potentialColors.bg} ${potentialColors.text} ${potentialColors.border}`
     : (STEP_TYPE_COLORS[step.step_type?.toLowerCase()] || STEP_TYPE_COLORS.manual);
@@ -67,12 +68,13 @@ export default function StepCard({ step, index, isLast, isSelected, onClick }) {
     <div className="shrink-0 w-full h-[240px]">
       {/* Card */}
       <div
-        onClick={onClick}
+        onClick={!isBlocked ? onClick : undefined}
         className={clsx(
-          "card p-4 w-full h-full flex flex-col cursor-pointer transition-all duration-200 animate-slide-up group",
+          "card p-4 w-full h-full flex flex-col transition-all duration-200 animate-slide-up group",
           isSelected
             ? "bg-white/[0.08] ring-1 ring-brand-500/30"
-            : "hover:bg-white/[0.08] hover:ring-1 hover:ring-brand-500/30"
+            : !isBlocked && "hover:bg-white/[0.08] hover:ring-1 hover:ring-brand-500/30",
+          isBlocked ? "cursor-not-allowed" : "cursor-pointer"
         )}
         style={{ animationDelay: `${index * 60}ms` }}>
         {/* Header */}
@@ -105,7 +107,11 @@ export default function StepCard({ step, index, isLast, isSelected, onClick }) {
         </div>
 
         <div className="mt-auto">
-          <AutomationBar value={step.automation_potential} automation_reasoning={step.automation_reasoning} />
+          <AutomationBar 
+            value={step.automation_potential} 
+            automation_reasoning={step.automation_reasoning} 
+            isBlocked={isBlocked} 
+          />
         </div>
 
         {/* Duration */}
