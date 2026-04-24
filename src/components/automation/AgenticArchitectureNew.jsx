@@ -3,12 +3,13 @@ import { Loader2, AlertCircle, Box, Server } from "lucide-react";
 import { getAutomationArchitecture, runAutomationArchitecture } from "../../services/api";
 
 // Components
-import ArchitectureHeader from "./components/ArchitectureHeader";
-import ArchitectureCanvas from "./components/ArchitectureCanvas";
-import ArchitectureLane from "./components/ArchitectureLane";
-import ArchitectureEdge from "./components/ArchitectureEdge";
-import ArchitectureNode from "./components/ArchitectureNode";
-import ExecutionLog from "./components/ExecutionLog";
+import { ArchitectureHeader, ExecutionLog } from "./components/ArchitectureUI";
+import { 
+  ArchitectureCanvas, 
+  ArchitectureLane, 
+  ArchitectureEdge, 
+  ArchitectureNode 
+} from "./components/ArchitectureVisuals";
 import CompletionModal from "./components/CompletionModal";
 
 // Utils
