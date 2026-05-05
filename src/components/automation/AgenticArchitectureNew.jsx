@@ -303,7 +303,8 @@ export default function SapValidationWorkflow({ suggestionId, stepKey, analysisI
         />
 
         <div className="flex flex-col gap-6">
-          <ArchitectureCanvas
+          <div className="relative">
+            <ArchitectureCanvas
             viewBox={`0 0 ${CANVAS_W} ${canvasHeight}`}
             height="min(78vh, 820px)"
             isRunning={isRunning}
@@ -348,32 +349,31 @@ export default function SapValidationWorkflow({ suggestionId, stepKey, analysisI
               );
             })}
           </ArchitectureCanvas>
-
-          {/* Hover info card */}
-          {hoveredNodeData && (
-            <div
-              className="absolute bottom-4 left-4 right-4 sm:right-auto sm:max-w-md rounded-xl border border-slate-200 bg-white/95 backdrop-blur-xl p-4 pointer-events-none shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-300"
-              style={{ boxShadow: "0 20px 50px -12px rgba(0,0,0,0.15)", zIndex: 50 }}
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <span
-                  className="text-[10px] uppercase font-black tracking-[0.2em] px-2 py-0.5 rounded-full"
-                  style={{
-                    color: layers[positions[hoveredNodeData.id].laneIdx].accent,
-                    backgroundColor: layers[positions[hoveredNodeData.id].laneIdx].accent + "15",
-                  }}
-                >
-                  {hoveredNodeData.type}
-                </span>
-                <span className="text-sm font-black text-slate-800">
-                  {hoveredNodeData.data.label}
-                </span>
+            {hoveredNodeData && (
+              <div
+                className="absolute bottom-4 left-4 right-4 sm:right-auto sm:max-w-md rounded-xl border border-slate-200 bg-white/95 backdrop-blur-xl p-4 pointer-events-none shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-300"
+                style={{ boxShadow: "0 20px 50px -12px rgba(0,0,0,0.15)", zIndex: 50 }}
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <span
+                    className="text-[10px] uppercase font-black tracking-[0.2em] px-2 py-0.5 rounded-full"
+                    style={{
+                      color: layers[positions[hoveredNodeData.id]?.laneIdx]?.accent || "#64748b",
+                      backgroundColor: (layers[positions[hoveredNodeData.id]?.laneIdx]?.accent || "#64748b") + "15",
+                    }}
+                  >
+                    {hoveredNodeData.type}
+                  </span>
+                  <span className="text-sm font-black text-slate-800">
+                    {hoveredNodeData.data.label}
+                  </span>
+                </div>
+                <div className="text-[12px] text-slate-500 leading-relaxed font-medium">
+                  {hoveredNodeData.data.description}
+                </div>
               </div>
-              <div className="text-[12px] text-slate-500 leading-relaxed font-medium">
-                {hoveredNodeData.data.description}
-              </div>
-            </div>
-          )}
+            )}
+          </div>
 
           <ExecutionLog 
             log={log} 

@@ -158,7 +158,7 @@ export function ArchitectureEdge({
       style={{ cursor: "pointer" }}
     >
       {/* hit area (invisible, wider) */}
-      <path d={edge.d} fill="none" stroke="transparent" strokeWidth="14" />
+      <path d={edge.d} fill="none" stroke="rgba(0,0,0,0)" strokeWidth="16" />
       
       {/* visible path */}
       <path
@@ -245,15 +245,18 @@ export function ArchitectureNode({
       onMouseLeave={() => setHoveredNode(null)}
       style={{ cursor: "pointer", transition: "all 0.3s ease" }}
     >
-      <foreignObject width={nodeWidth} height={nodeHeight} className="overflow-visible">
+      <foreignObject x="-20" y="-20" width={nodeWidth + 40} height={nodeHeight + 40} className="overflow-visible">
         <div
-          className={`w-full h-full border-2 rounded-2xl flex items-center p-3 relative transition-all duration-500 bg-white ${isActive
+          className={`border-2 rounded-2xl flex items-center p-3 relative transition-all duration-500 bg-white ${isActive
             ? "shadow-[0_20px_40px_-12px_rgba(0,0,0,0.25)] scale-[1.03]"
             : isHovered
               ? "shadow-xl -translate-y-1"
               : "shadow-md"
             }`}
           style={{
+            width: nodeWidth,
+            height: nodeHeight,
+            margin: '20px',
             backgroundColor: isActive ? "#f0fdf4" : "white",
             borderColor: isActive
               ? "#22c55e"
